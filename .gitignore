@@ -1,0 +1,14 @@
+coverage
+coverage.data
+
+/Gemfile.lock
+/*.gem
+
+rdoc
+doc
+.yardoc
+.bundle
+pkg
+
+.DS_Store
+

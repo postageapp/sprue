@@ -1,0 +1,9 @@
+= sprue
+
+This is a job queueing system. It queues jobs.
+
+== Copyright
+
+Copyright (c) 2013 Scott Tadman, Derek Watson, The Working Group Inc.
+See LICENSE.txt for further details.
+
