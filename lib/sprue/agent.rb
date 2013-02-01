@@ -12,19 +12,31 @@ class Sprue::Agent < Sprue::Client
   def initialize(context, ident = nil)
     super(context)
 
-    @feeder = context.feeder(self)
     @ident = ident || @context.generate_client_ident
+    @tags = [ ]
 
     if (block_given?)
       @handler = Proc.new
     end
   end
 
+  def attributes
+    {
+      :ident => @ident,
+      :tags => @tags
+    }
+  end
+
   def subscribe(tag)
+    @tags << tag
+    @tags.uniq!
+
     @repository.client_subscribe!(self, tag)
   end
 
   def unsubscribe(tag)
+    @tags.delete(tag)
+
     @repository.client_unsubscribe!(self, tag)
   end
 
@@ -32,11 +44,16 @@ class Sprue::Agent < Sprue::Client
     @handler.call(job)
   end
 
-  def submit(job)
+  def job_queue!(job, queue = nil)
+    @repository.job_save!(job)
+    @repository.job_queue!(job, queue)
   end
 
-protected
-  def heartbeat!
-    @
+  def update!
+    @repository.agent_update!(self)
+  end
+
+  def remove!
+    @repository.agent_remove!(self)
   end
 end
