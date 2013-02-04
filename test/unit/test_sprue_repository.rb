@@ -9,36 +9,44 @@ class TestSprueRepository < Test::Unit::TestCase
     assert_equal repository.context, context
   end
 
-  def test_job_save_and_load
-    context = Sprue::Context.new
+  class TestEntity < Sprue::Entity
+    attribute :data, :as => :json
+  end
 
-    repository = Sprue::Repository.new(context.connection)
+  def test_entity_save_and_load
+    repository = Sprue::Repository.new(Sprue::Context.new.connection)
 
-    job = Sprue::Job.new(
+    entity = TestEntity.new(
       :ident => 'test-ident',
-      :agent_ident => 'test-agent-ident',
-      :queue => 'test-queue',
-      :scheduled_at => Time.at(1 << 30).utc,
-      :priority => 99,
-      :tags => %w[ tag-a tag-b ],
-      :data => { 'test' => 'data' },
-      :status => 'test-status'
+      :data => { 'test' => 'data' }
     )
 
-    assert_equal nil, job.repository
+    assert_equal nil, entity.repository
 
-    assert_equal false, repository.exist?(job.ident, Sprue::Job)
-    assert_equal nil, repository.load!('test-ident', Sprue::Job)
+    assert_equal false, repository.exist?(entity.ident, TestEntity)
+    assert_equal false, repository.active?(entity)
+    assert_equal nil, repository.load!('test-ident', TestEntity)
 
-    repository.save!(job)
+    repository.save!(entity)
 
-    assert_equal nil, job.repository
+    assert_equal nil, entity.repository
 
-    assert_equal true, repository.exist?(job.ident, Sprue::Job)
+    assert_equal true, repository.exist?(entity.ident, TestEntity)
+    assert_equal false, repository.active?(entity)
 
-    loaded_job = repository.load!('test-ident', Sprue::Job)
+    repository.active!(entity)
 
-    assert_equal job.attributes, loaded_job.attributes
-    assert_equal repository, loaded_job.repository
+    assert_equal true, repository.active?(entity)
+
+    loaded_entity = repository.load!('test-ident', TestEntity)
+
+    assert_equal entity.attributes, loaded_entity.attributes
+    assert_equal repository, loaded_entity.repository
+
+    repository.delete!(entity)
+
+    assert_equal false, repository.exist?(entity.ident, TestEntity)
+    assert_equal false, repository.active?(entity)
+    assert_equal nil, repository.load!('test-ident', TestEntity)
   end
 end

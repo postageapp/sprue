@@ -4,6 +4,9 @@ class Sprue::Repository
   # == Extensions ===========================================================
   
   # == Constants ============================================================
+
+  ACTIVE_VARIANT = '!'.freeze
+  DEFAULT_TIMEOUT = 30
   
   # == Properties ===========================================================
 
@@ -62,13 +65,26 @@ class Sprue::Repository
     key = entity_key(entity, entity_class)
 
     @connection.del(key)
+
+    key = entity_key(entity, entity_class, ACTIVE_VARIANT)
+
+    @connection.del(key)
   end
 
   def exist?(entity, entity_class = nil)
     @connection.exists(entity_key(entity, entity_class))
   end
 
+  def active!(entity, entity_class = nil, timeout = nil)
+    key = entity_key(entity, entity_class, ACTIVE_VARIANT)
+    
+    @connection.set(key, "%s:%d" % [ Socket.gethostname, $$ ])
+    @connection.expire(key, timeout || DEFAULT_TIMEOUT)
+  end
+
   def active?(entity, entity_class = nil)
-    @connection.exists(entity_key(entity, entity_class, '!'))
+    key = entity_key(entity, entity_class, ACTIVE_VARIANT)
+
+    @connection.exists(key)
   end
 end
