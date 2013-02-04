@@ -22,6 +22,10 @@ class TestSprueSerializer < Test::Unit::TestCase
   end
 
   SAMPLE_OPTIONS = {
+    :ident => {
+      :serialize => lambda { |v| v.to_s },
+      :deserialize => lambda { |v| v }
+    },
     :name => {
       :serialize => lambda { |v| v.to_s.upcase },
       :deserialize => lambda { |v| v.downcase }
@@ -45,6 +49,7 @@ class TestSprueSerializer < Test::Unit::TestCase
     values = [
       'test-ident',
       [
+        'ident', 'test-ident',
         'name', '',
         'hex', '',
         'blanked', ''
@@ -65,6 +70,7 @@ class TestSprueSerializer < Test::Unit::TestCase
     values = [
       'test-ident',
       [
+        'ident', 'test-ident',
         'name', 'TEST',
         'hex', '20',
         'blanked', ''
@@ -75,6 +81,10 @@ class TestSprueSerializer < Test::Unit::TestCase
   end
 
   ENCODED_OPTIONS = {
+    :ident => {
+      :serialize => lambda { |v| v.to_s },
+      :deserialize => lambda { |v| v }
+    },
     :string => {
       :serialize => lambda { |v| v.to_s },
       :deserialize => lambda { |v| v }
@@ -105,6 +115,7 @@ class TestSprueSerializer < Test::Unit::TestCase
     values = [
       'test-ident',
       [
+        'ident', 'test-ident',
         'string', '',
         'integer', '',
         'time', '',
@@ -118,6 +129,7 @@ class TestSprueSerializer < Test::Unit::TestCase
 
   def test_decoding_example_defaults
     values = [
+      'ident', 'test-ident',
       'string', '',
       'integer', '',
       'time', '',
@@ -150,6 +162,7 @@ class TestSprueSerializer < Test::Unit::TestCase
     values = [
       'test-ident',
       [
+        'ident', 'test-ident',
         'string', 'test',
         'integer', '92',
         'time', '1073741824',
@@ -163,6 +176,7 @@ class TestSprueSerializer < Test::Unit::TestCase
 
   def test_deencoding_example_data
     values = [
+      'ident', 'test-ident',
       'string', 'test',
       'integer', '92',
       'time', '1073741824',

@@ -6,6 +6,8 @@ class Sprue::Repository
   # == Constants ============================================================
 
   ACTIVE_VARIANT = '!'.freeze
+  QUEUE_VARIANT = '*'.freeze
+  ENTITY_KEY_SEPARATOR = '#'.freeze
   DEFAULT_TIMEOUT = 30
   
   # == Properties ===========================================================
@@ -23,19 +25,48 @@ class Sprue::Repository
   end
 
   def entity_key(entity, entity_class = nil, variant = nil)
-    key = [
-      (entity_class || entity).ident_prefix,
-      entity.respond_to?(:ident) ? entity.ident : entity
-    ].join(':')
+    key =
+      case (entity)
+      when Sprue::Entity
+        [ entity.class.to_s, entity.ident ].join(ENTITY_KEY_SEPARATOR)
+      else
+        entity = entity.to_s
 
-    if (variant)
-      key << variant.to_s
-    end
+        if (entity.match(ENTITY_KEY_SEPARATOR))
+          entity
+        else
+          [ entity_class, entity ].join(ENTITY_KEY_SEPARATOR)
+        end
+      end
 
-    key
+    variant ? (key + variant.to_s) : key
   end
 
-  def load!(ident, entity_class)
+  def pop!(queue = nil, queue_class = nil, block = true)
+    ident =
+      if (block)
+        @connection.blpop(entity_key(queue, queue_class), 0)
+      else
+        @connection.lpop(entity_key(queue, queue_class))
+      end
+
+    ident and self.load!(ident)
+  end
+
+  def push!(entity, entity_class = nil, queue = nil, queue_class = Sprue::Queue)
+    @connection.rpush(
+      entity_key(queue, queue_class, QUEUE_VARIANT),
+      entity_key(entity, entity_class)
+    )
+  end
+
+  def queue_length(queue = nil, queue_class = Sprue::Queue)
+    key = entity_key(queue, queue_class, QUEUE_VARIANT)
+
+    @connection.exists(key) and @connection.llen(key) or nil
+  end
+
+  def load!(ident, entity_class = nil)
     values = @connection.hgetall(entity_key(ident, entity_class))
 
     if (values.empty?)
@@ -80,6 +111,12 @@ class Sprue::Repository
     
     @connection.set(key, "%s:%d" % [ Socket.gethostname, $$ ])
     @connection.expire(key, timeout || DEFAULT_TIMEOUT)
+  end
+
+  def inactive!(entity, entity_class = nil, timeout = nil)
+    key = entity_key(entity, entity_class, ACTIVE_VARIANT)
+    
+    @connection.del(key)
   end
 
   def active?(entity, entity_class = nil)

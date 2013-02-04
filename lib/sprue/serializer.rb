@@ -23,8 +23,6 @@ module Sprue::Serializer
     values = [ ]
 
     attribute_options.each do |name, options|
-      next if (name == :ident)
-
       value = attributes[name]
 
       values << name.to_s

@@ -3,12 +3,6 @@ class Sprue::Job < Sprue::Entity
   
   # == Constants ============================================================
 
-  DEFAULTS = {
-    :ident => lambda { Sprue::Context.generate_ident },
-    :priority => 1,
-    :tags => lambda { [ ] }
-  }
-  
   # == Properties ===========================================================
 
   attribute :agent_ident
@@ -16,7 +10,8 @@ class Sprue::Job < Sprue::Entity
   attribute :scheduled_at,
     :as => :time
   attribute :priority,
-    :as => :integer
+    :as => :integer,
+    :default => 1
   attribute :tags,
     :as => :csv
   attribute :data,
@@ -27,39 +22,23 @@ class Sprue::Job < Sprue::Entity
 
   # == Class Methods ========================================================
 
-  def self.defaults
-    DEFAULTS
-  end
-  
   # == Instance Methods =====================================================
-
-  def initialize(options = nil, repository = nil)
-    options = self.class.defaults.merge(options || { })
-
-    options.each do |k, v|
-      if (v.is_a?(Proc))
-        options[k] = v.call
-      end
-    end
-
-    @ident = options[:ident]
-    @agent_ident = options[:agent_ident]
-    @queue = options[:queue]
-    @scheduled_at = options[:scheduled_at]
-    @priority = options[:priority]
-    @tags = options[:tags]
-    @data = options[:data]
-    @status = options[:status]
-
-    @repository = repository
-  end
 
   def claim!(agent)
     @agent_ident = agent.ident
-    # ...
+
+    self.save!
+    self.active!
   end
 
-  def queue!(queue_name)
-    # ...
+  def release!
+    @agent_ident = nil
+
+    self.save!
+    self.inactive!
+  end
+
+  def queue!(queue_name = nil)
+    @repository.queue!(self, self.class, queue_name)
   end
 end

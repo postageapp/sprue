@@ -25,7 +25,6 @@ class Sprue::Entity
       :deserialize => lambda { |v| v.to_i }
     },
     :time => {
-      :cast => lambda { |v| v.nil? ? nil : v.to_i },
       :serialize => lambda { |v| v.to_i.to_s },
       :deserialize => lambda { |v| Time.at(v.to_i).utc }
     },
@@ -97,10 +96,6 @@ class Sprue::Entity
     hash
   end
 
-  def self.ident_prefix
-    @ident_prefix ||= self.to_s.split(/::/).last.downcase
-  end
-
   # == Instance Methods =====================================================
 
   def initialize(with_attributes = nil, repository = nil)
@@ -135,10 +130,6 @@ class Sprue::Entity
     @ident = value ? value.to_s : nil
   end
 
-  def ident_prefix
-    self.class.ident_prefix
-  end
-
   def serialize(attributes)
     Sprue::Serializer.serialize(attributes, self.class.attributes)
   end
@@ -156,6 +147,10 @@ class Sprue::Entity
   end
 
   def save!(repository = nil)
+    unless (@repository)
+      @repository ||= repository
+    end
+    
     repository ||= @repository
 
     return false unless (repository)

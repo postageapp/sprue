@@ -1,10 +1,6 @@
 require_relative '../helper'
 
 class TestSprueEntity < Test::Unit::TestCase
-  def test_ident_prefix
-    assert_equal 'entity', Sprue::Entity.ident_prefix
-  end
-
   class SampleEntity < Sprue::Entity
     attribute :string
     attribute :integer,
@@ -17,8 +13,6 @@ class TestSprueEntity < Test::Unit::TestCase
 
   def test_sample_entity_attributes
     entity = SampleEntity.new(:ident => 'test-ident')
-
-    assert_equal 'sampleentity', entity.ident_prefix
 
     assert entity.class.attributes
 
@@ -89,8 +83,6 @@ class TestSprueEntity < Test::Unit::TestCase
 
   def test_with_defaults_entity_attributes
     entity = WithDefaultsEntity.new(:ident => 'test-ident')
-
-    assert_equal 'withdefaultsentity', entity.ident_prefix
 
     attributes = {
       :ident => 'test-ident',

@@ -6,6 +6,7 @@ module Sprue
   autoload(:Dispatcher, 'sprue/dispatcher')
   autoload(:Entity, 'sprue/entity')
   autoload(:Job, 'sprue/job')
+  autoload(:Queue, 'sprue/queue')
   autoload(:Repository, 'sprue/repository')
   autoload(:Serializer, 'sprue/serializer')
 end
