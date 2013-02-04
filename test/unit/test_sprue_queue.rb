@@ -33,14 +33,26 @@ class TestSprueQueue < Test::Unit::TestCase
 
     assert_equal repository, queue.repository
 
-    assert_equal nil, queue.length
+    assert_equal 0, queue.length
 
     entity = TestEntity.new
+    entity.save!(repository)
+
+    assert_equal true, repository.exist?(entity)
 
     queue.push!(entity)
 
     assert_equal 1, queue.length
 
-    
+    popped = queue.pop!
+
+    assert popped
+    assert_equal entity.attributes, popped.attributes
+
+    assert_equal 0, queue.length
+
+    popped = queue.pop!
+
+    assert_equal nil, popped
   end
 end

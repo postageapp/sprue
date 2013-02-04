@@ -24,6 +24,14 @@ class Sprue::Repository
     @connection.context
   end
 
+  def entity_key_expand(ident)
+    entity_class, ident = ident.split(ENTITY_KEY_SEPARATOR)
+
+    # This reduce method functions as the equivalent of String#constantize
+
+    [ ident, entity_class.split('::').reduce(Module, :const_get) ]
+  end
+
   def entity_key(entity, entity_class = nil, variant = nil)
     key =
       case (entity)
@@ -42,12 +50,14 @@ class Sprue::Repository
     variant ? (key + variant.to_s) : key
   end
 
-  def pop!(queue = nil, queue_class = nil, block = true)
+  def pop!(queue = nil, queue_class = nil, block = false)
+    key = entity_key(queue, queue_class, QUEUE_VARIANT)
+
     ident =
       if (block)
-        @connection.blpop(entity_key(queue, queue_class), 0)
+        @connection.blpop(key, 0)
       else
-        @connection.lpop(entity_key(queue, queue_class))
+        @connection.lpop(key)
       end
 
     ident and self.load!(ident)
@@ -63,11 +73,19 @@ class Sprue::Repository
   def queue_length(queue = nil, queue_class = Sprue::Queue)
     key = entity_key(queue, queue_class, QUEUE_VARIANT)
 
-    @connection.exists(key) and @connection.llen(key) or nil
+    @connection.exists(key) and @connection.llen(key) or 0
   end
 
   def load!(ident, entity_class = nil)
-    values = @connection.hgetall(entity_key(ident, entity_class))
+    key = ident
+
+    if (!entity_class and ident.is_a?(String))
+      ident, entity_class = entity_key_expand(ident)
+    else
+      key = entity_key(ident, entity_class)
+    end
+
+    values = @connection.hgetall(key)
 
     if (values.empty?)
       return

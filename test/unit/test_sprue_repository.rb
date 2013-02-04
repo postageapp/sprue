@@ -9,10 +9,27 @@ class TestSprueRepository < Test::Unit::TestCase
     assert_equal repository.context, context
   end
 
+  def test_entity_key
+    repository = Sprue::Repository.new(Sprue::Context.new.connection)
+
+    assert_equal 'Test#ident', repository.entity_key('ident', 'Test')
+    assert_equal 'Sprue::Entity#ident', repository.entity_key('ident', Sprue::Entity)
+
+    entity = Sprue::Entity.new(:ident => 'ident')
+
+    assert_equal 'Sprue::Entity#ident', repository.entity_key(entity)    
+  end
+
+  def test_entity_key_expand
+    repository = Sprue::Repository.new(Sprue::Context.new.connection)
+
+    assert_equal [ 'test', Sprue::Entity ], repository.entity_key_expand('Sprue::Entity#test')
+  end
+
   def test_queue_length
     repository = Sprue::Repository.new(Sprue::Context.new.connection)
 
-    assert_equal nil, repository.queue_length
+    assert_equal 0, repository.queue_length
   end
 
   def test_base_entity_save_and_load
