@@ -8,7 +8,7 @@ class Sprue::Repository
   # == Properties ===========================================================
 
   # == Class Methods ========================================================
-  
+
   # == Instance Methods =====================================================
 
   def initialize(connection)
@@ -19,53 +19,56 @@ class Sprue::Repository
     @connection.context
   end
 
-  def job_metadata_key(ident)
-    "job:#{ident}"
+  def entity_key(entity, entity_class = nil, variant = nil)
+    key = [
+      (entity_class || entity).ident_prefix,
+      entity.respond_to?(:ident) ? entity.ident : entity
+    ].join(':')
+
+    if (variant)
+      key << variant.to_s
+    end
+
+    key
   end
 
-  def job_exists?(ident)
-    @connection.exists(job_metadata_key(ident))
-  end
-
-  def job_load!(ident)
-    values = @connection.hgetall(job_metadata_key(ident))
+  def load!(ident, entity_class)
+    values = @connection.hgetall(entity_key(ident, entity_class))
 
     if (values.empty?)
       return
     end
 
-    Sprue::Job.new(Sprue::Serializer::Job.deserialize(ident, values), self)
+    attributes = Sprue::Serializer.deserialize(
+      ident,
+      values,
+      entity_class.attributes
+    )
+
+    entity_class.new(attributes, self)
   end
 
-  def job_save!(job)
-    ident, values = Sprue::Serializer::Job.serialize(job.attributes)
+  def save!(entity)
+    key, values = Sprue::Serializer.serialize(
+      entity_key(entity),
+      entity.attributes,
+      entity.class.attributes
+    )
 
-    @connection.hmset(job_metadata_key(ident), values)
+    @connection.hmset(key, values)
   end
 
-  def agent_metadata_key(ident)
-    "agent:#{ident}"
+  def delete!(entity, entity_class = nil)
+    key = entity_key(entity, entity_class)
+
+    @connection.del(key)
   end
 
-  def agent_active_key(ident)
-    "agent:#{ident}!"
+  def exist?(entity, entity_class = nil)
+    @connection.exists(entity_key(entity, entity_class))
   end
 
-  def agent_exists?(ident)
-    @connection.exists(agent_metadata_key(ident))
-  end
-
-  def agent_active?(ident)
-    @connection.exists(agent_active_key(ident))
-  end
-
-  def agent_load!(ident)
-
-  end
-
-  def agent_update!(agent)
-  end
-
-  def agent_remove!(agent)
+  def active?(entity, entity_class = nil)
+    @connection.exists(entity_key(entity, entity_class, '!'))
   end
 end

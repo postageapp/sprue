@@ -4,6 +4,7 @@ module Sprue
   autoload(:Connection, 'sprue/connection')
   autoload(:Context, 'sprue/context')
   autoload(:Dispatcher, 'sprue/dispatcher')
+  autoload(:Entity, 'sprue/entity')
   autoload(:Job, 'sprue/job')
   autoload(:Repository, 'sprue/repository')
   autoload(:Serializer, 'sprue/serializer')

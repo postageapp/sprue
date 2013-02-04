@@ -21,17 +21,21 @@ class TestSprueSerializer < Test::Unit::TestCase
     end
   end
 
-  class SampleSerializer < Sprue::Serializer
-    attribute :name,
+  SAMPLE_OPTIONS = {
+    :name => {
       :serialize => lambda { |v| v.to_s.upcase },
       :deserialize => lambda { |v| v.downcase }
-    attribute :hex,
+    },
+    :hex => {
       :serialize => lambda { |v| v ? v.to_s(16) : '' },
       :deserialize => lambda { |v| v.to_i(16) }
-
-    attribute :blanked,
+    },
+    :blanked => {
+      :serialize => lambda { |v| v.to_s.upcase },
+      :deserialize => lambda { |v| v.downcase },
       :allow_blank => true
-  end
+    }
+  }.freeze
 
   def test_sample_defaults
     attributes = {
@@ -47,12 +51,10 @@ class TestSprueSerializer < Test::Unit::TestCase
       ]
     ]
 
-    assert_equal values, SampleSerializer.serialize(attributes)
+    assert_equal values, Sprue::Serializer.serialize(attributes[:ident], attributes, SAMPLE_OPTIONS)
   end
 
   def test_sample_data
-    serializer = SampleSerializer.new
-
     attributes = {
       :ident => 'test-ident',
       :name => :test,
@@ -69,16 +71,31 @@ class TestSprueSerializer < Test::Unit::TestCase
       ]
     ]
 
-    assert_equal values, serializer.serialize(attributes)
+    assert_equal values, Sprue::Serializer.serialize(attributes[:ident], attributes, SAMPLE_OPTIONS)
   end
 
-  class EncodingExampleSerializer < Sprue::Serializer
-    attribute :string, :as => :string
-    attribute :integer, :as => :integer
-    attribute :time, :as => :time
-    attribute :csv, :as => :csv
-    attribute :json, :as => :json
-  end
+  ENCODED_OPTIONS = {
+    :string => {
+      :serialize => lambda { |v| v.to_s },
+      :deserialize => lambda { |v| v }
+    },
+    :integer => {
+      :serialize => lambda { |v| v.to_s },
+      :deserialize => lambda { |v| v.to_i }
+    },
+    :time => {
+      :serialize => lambda { |v| v.to_i.to_s },
+      :deserialize => lambda { |v| Time.at(v.to_i).utc }
+    },
+    :csv => {
+      :serialize => lambda { |v| v.join(',') },
+      :deserialize => lambda { |v| v.split(',') },
+    },
+    :json => {
+      :serialize => lambda { |v| JSON.dump(v) },
+      :deserialize => lambda { |v| JSON.load(v) }
+    }
+  }
 
   def test_encoding_example_defaults
     attributes = {
@@ -96,31 +113,28 @@ class TestSprueSerializer < Test::Unit::TestCase
       ]
     ]
 
-    assert_equal values, EncodingExampleSerializer.serialize(attributes)
+    assert_equal values, Sprue::Serializer.serialize(attributes[:ident], attributes, ENCODED_OPTIONS)
   end
 
   def test_decoding_example_defaults
+    values = [
+      'string', '',
+      'integer', '',
+      'time', '',
+      'csv', '',
+      'json', ''
+    ]
+
     attributes = {
       :ident => 'test-ident',
       :string => nil,
       :integer => nil,
       :time => nil,
-      :csv => [ ],
+      :csv => nil,
       :json => nil
     }
 
-    values = [
-      'test-ident',
-      [
-        'string', '',
-        'integer', '',
-        'time', '',
-        'csv', '',
-        'json', ''
-      ]
-    ]
-
-    assert_equal attributes, EncodingExampleSerializer.deserialize(*values)
+    assert_equal attributes, Sprue::Serializer.deserialize(attributes[:ident], values, ENCODED_OPTIONS)
   end
 
   def test_encoding_example_data
@@ -128,7 +142,7 @@ class TestSprueSerializer < Test::Unit::TestCase
       :ident => 'test-ident',
       :string => :test,
       :integer => 92,
-      :time => Time.at(1 << 30),
+      :time => Time.at(1 << 30).utc,
       :csv => %w[ a b c ],
       :json => { 'test' => [ 'things' ] }
     }
@@ -144,30 +158,27 @@ class TestSprueSerializer < Test::Unit::TestCase
       ]
     ]
 
-    assert_equal values, EncodingExampleSerializer.serialize(attributes)
+    assert_equal values, Sprue::Serializer.serialize(attributes[:ident], attributes, ENCODED_OPTIONS)
   end
 
   def test_deencoding_example_data
+    values = [
+      'string', 'test',
+      'integer', '92',
+      'time', '1073741824',
+      'csv', 'a,b,c',
+      'json', '{"test":["things"]}'
+    ]
+
     attributes = {
       :ident => 'test-ident',
       :string => 'test',
       :integer => 92,
-      :time => Time.at(1 << 30),
+      :time => Time.at(1 << 30).utc,
       :csv => %w[ a b c ],
       :json => { 'test' => [ 'things' ] }
     }
 
-    values = [
-      'test-ident',
-      [
-        'string', 'test',
-        'integer', '92',
-        'time', '1073741824',
-        'csv', 'a,b,c',
-        'json', '{"test":["things"]}'
-      ]
-    ]
-
-    assert_equal attributes, EncodingExampleSerializer.deserialize(*values)
+    assert_equal attributes, Sprue::Serializer.deserialize(attributes[:ident], values, ENCODED_OPTIONS)
   end
 end

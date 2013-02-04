@@ -18,6 +18,10 @@ require 'redis'
 require 'sprue'
 
 class Test::Unit::TestCase
+  def setup
+    Sprue::Context.new.connection.flushdb
+  end
+
   def assert_mapping(map)
     result_map = map.inject({ }) do |h, (k,v)|
       if (k and k.respond_to?(:freeze))

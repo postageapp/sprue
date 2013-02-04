@@ -1,10 +1,6 @@
 require_relative '../helper'
 
 class TestSprueRepository < Test::Unit::TestCase
-  def setup
-    Sprue::Context.new.connection.flushdb
-  end
-
   def test_defaults
     context = Sprue::Context.new
 
@@ -31,16 +27,16 @@ class TestSprueRepository < Test::Unit::TestCase
 
     assert_equal nil, job.repository
 
-    assert_equal false, repository.job_exists?(job.ident)
-    assert_equal nil, repository.job_load!('test-ident')
+    assert_equal false, repository.exist?(job.ident, Sprue::Job)
+    assert_equal nil, repository.load!('test-ident', Sprue::Job)
 
-    repository.job_save!(job)
+    repository.save!(job)
 
     assert_equal nil, job.repository
 
-    assert_equal true, repository.job_exists?(job.ident)
+    assert_equal true, repository.exist?(job.ident, Sprue::Job)
 
-    loaded_job = repository.job_load!('test-ident')
+    loaded_job = repository.load!('test-ident', Sprue::Job)
 
     assert_equal job.attributes, loaded_job.attributes
     assert_equal repository, loaded_job.repository

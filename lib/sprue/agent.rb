@@ -1,30 +1,25 @@
-class Sprue::Agent < Sprue::Client
+class Sprue::Agent < Sprue::Entity
   # == Extensions ===========================================================
 
   # == Constants ============================================================
 
   # == Properties ===========================================================
 
+  attribute :tags,
+    :as => :csv
+
   # == Class Methods ========================================================
 
   # == Instance Methods =====================================================
 
   def initialize(context, ident = nil)
-    super(context)
+    super(ident)
 
-    @ident = ident || @context.generate_client_ident
-    @tags = [ ]
+    @client = Sprue::Client.new(context)
 
     if (block_given?)
       @handler = Proc.new
     end
-  end
-
-  def attributes
-    {
-      :ident => @ident,
-      :tags => @tags
-    }
   end
 
   def subscribe(tag)

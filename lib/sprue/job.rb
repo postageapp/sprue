@@ -1,4 +1,4 @@
-class Sprue::Job
+class Sprue::Job < Sprue::Entity
   # == Extensions ===========================================================
   
   # == Constants ============================================================
@@ -11,14 +11,17 @@ class Sprue::Job
   
   # == Properties ===========================================================
 
-  attr_accessor :ident
-  attr_accessor :agent_ident
-  attr_accessor :queue
-  attr_accessor :scheduled_at
-  attr_accessor :priority
-  attr_accessor :tags
-  attr_accessor :data
-  attr_accessor :status
+  attribute :agent_ident
+  attribute :queue
+  attribute :scheduled_at,
+    :as => :time
+  attribute :priority,
+    :as => :integer
+  attribute :tags,
+    :as => :csv
+  attribute :data,
+    :as => :json
+  attribute :status
 
   attr_reader :repository
 
@@ -57,27 +60,6 @@ class Sprue::Job
   end
 
   def queue!(queue_name)
-
-  end
-
-  def attributes
-    {
-      :ident => @ident,
-      :agent_ident => @agent_ident,
-      :queue => queue,
-      :scheduled_at => @scheduled_at,
-      :priority => @priority,
-      :tags => @tags,
-      :data => @data,
-      :status => @status
-    }
-  end
-
-  def save!(repository = nil)
-    if (repository)
-      @repository = repository
-    end
-
-    @repository.job_save!(self)
+    # ...
   end
 end

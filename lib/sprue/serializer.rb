@@ -1,60 +1,13 @@
 require 'json'
 
-class Sprue::Serializer
-  # == Subclasses ===========================================================
-  
-  autoload(:Agent, 'sprue/serializer/agent')
-  autoload(:Job, 'sprue/serializer/job')
+module Sprue::Serializer
+  # == Module Methods =======================================================
 
-  # == Extensions ===========================================================
-  
-  # == Constants ============================================================
-
-  ENCODING_METHODS = {
-    :string => {
-      :serialize => lambda { |v| v.to_s },
-      :deserialize => lambda { |v| v }
-    },
-    :integer => {
-      :serialize => lambda { |v| v.to_s },
-      :deserialize => lambda { |v| v.to_i }
-    },
-    :time => {
-      :serialize => lambda { |v| v.to_i.to_s },
-      :deserialize => lambda { |v| Time.at(v.to_i).utc }
-    },
-    :csv => {
-      :serialize => lambda { |v| v.join(',') },
-      :deserialize => lambda { |v| v.split(',') },
-      :allow_blank => true
-    },
-    :json => {
-      :serialize => lambda { |v| JSON.dump(v) },
-      :deserialize => lambda { |v| JSON.load(v) }
-    }
-  }.freeze
-
-  DEFAULT_ENCODING = :string
-
-  # == Class Methods ========================================================
-
-  def self.attributes
-    @attributes ||= { }
-  end
-
-  def self.attribute(name, options = nil)
-    # FUTURE: Warn on invalid encoding methods?
-    as = options && options[:as] || DEFAULT_ENCODING
-    defaults = ENCODING_METHODS[as] || ENCODING_METHODS[DEFAULT_ENCODING]
-
-    self.attributes[name] = defaults.merge(options || { })
-  end
-
-  def self.hash_to_list(hash)
+  def hash_to_list(hash)
     hash.to_a.flatten.collect(&:to_s)
   end
 
-  def self.list_to_hash(list)
+  def list_to_hash(list)
     hash = { }
 
     list.each_with_index do |k, i|
@@ -66,25 +19,10 @@ class Sprue::Serializer
     hash
   end
 
-  def self.singleton
-    @singleton ||= self.new
-  end
-
-  def self.serialize(attributes)
-    self.singleton.serialize(attributes)
-  end
-
-  def self.deserialize(ident, values)
-    self.singleton.deserialize(ident, values)
-  end
-  
-  # == Instance Methods =====================================================
-
-  def serialize(attributes)
-    ident = attributes[:ident]
+  def serialize(ident, attributes, attribute_options)
     values = [ ]
 
-    self.class.attributes.each do |name, options|
+    attribute_options.each do |name, options|
       next if (name == :ident)
 
       value = attributes[name]
@@ -102,27 +40,33 @@ class Sprue::Serializer
     [ ident, values ]
   end
 
-  def deserialize(ident, values)
+  def deserialize(ident, values, attribute_options)
     attributes = {
-      :ident => ident
+      :ident => ident.respond_to?(:ident) ? ident.ident : ident
     }
 
     case (values)
     when Array
-      values = self.class.list_to_hash(values)
+      values = list_to_hash(values)
     end
 
-    self.class.attributes.each do |name, options|
+    attribute_options.each do |name, options|
+      next if (name == :ident)
+
       value = values[name.to_s]
 
       attributes[name] =
         if (value == '' and !options[:allow_blank])
           nil
-        else
+        elsif (!value.nil? or (value.nil? and options[:allow_nil]))
           options[:deserialize].call(value)
+        else
+          nil
         end
     end
 
     attributes
   end
+
+  extend self
 end

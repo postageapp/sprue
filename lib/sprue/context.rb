@@ -46,11 +46,7 @@ class Sprue::Context
     Sprue::Repository.new(self.connection)
   end
 
-  def generate_client_ident
-    self.class.generate_ident
-  end
-
-  def generate_job_ident
+  def generate_ident
     self.class.generate_ident
   end
 end
