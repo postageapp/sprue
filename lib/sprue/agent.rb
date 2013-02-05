@@ -39,12 +39,18 @@ class Sprue::Agent < Sprue::Entity
     @handler.call(job)
   end
 
-  def claim!(agent)
-    self.save!
-    self.active!
+  def pop!(queue, block = false)
+    @repository.pop!(queue, self, block)
   end
 
-  def release!
+  def claim!(entity)
+    entity.agent_ident = self.ident
+    entity.save!
+
+    entity.active!
+  end
+
+  def release!(entity)
     @agent_ident = nil
 
     self.save!

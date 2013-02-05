@@ -26,20 +26,29 @@ class Sprue::Repository
   end
 
   def pop!(queue, agent = nil, block = false)
-    key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
+    queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 
     popped_key =
-      if (block)
-        @connection.blpop(key, 0)
+      if (agent)
+        agent_key = subkey(agent, QUEUE_ENTRIES_SUBKEY)
+
+        if (block)
+          @connection.brpoplpush(queue_key, agent_key, 0)
+        else
+          @connection.rpoplpush(queue_key, agent_key, 0)
+        end
       else
-        @connection.lpop(key)
-      end
+        if (block)
+          @connection.brpop(key, 0)
+        else
+          @connection.rpop(key)
+        end
 
     popped_key and self.load!(popped_key)
   end
 
   def push!(queue, entity)
-    @connection.rpush(
+    @connection.lpush(
       subkey(queue, QUEUE_ENTRIES_SUBKEY),
       entity.to_s
     )
