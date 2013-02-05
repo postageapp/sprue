@@ -3,6 +3,8 @@ class Sprue::Entity
   
   # == Constants ============================================================
 
+  KEY_SEPARATOR = '#'.freeze
+
   DEFAULT_ATTRIBUTES = {
     :ident => {
       :default => lambda { Sprue::Context.generate_ident },
@@ -80,20 +82,25 @@ class Sprue::Entity
     end
   end
 
-  def self.hash_to_list(hash)
-    hash.to_a.flatten.collect(&:to_s)
+  def self.repository_key_split(ident)
+    entity_class, ident = ident.split(KEY_SEPARATOR)
+
+    # This reduce method functions as the equivalent of String#constantize
+
+    # FIX: Test that entity_class is Entity-derived?
+    # FIX: Trap on invalid classes when using reduce (inject?)
+
+    [ ident, entity_class.split('::').reduce(Module, :const_get) ]
   end
 
-  def self.list_to_hash(list)
-    hash = { }
+  def self.repository_key(ident)
+    [ self, ident ].join(KEY_SEPARATOR)
+  end
 
-    list.each_with_index do |k, i|
-      next if (i % 2 == 1)
+  def self.instantiate(ident, attributes)
+    entity_class, ident = repository_key_split(ident)
 
-      hash[k] = list[i + 1]
-    end
-
-    hash
+    entity_class.new(attributes)
   end
 
   # == Instance Methods =====================================================
@@ -121,6 +128,11 @@ class Sprue::Entity
 
     @repository = repository
   end
+
+  def repository_key
+    [ self.class, @ident ].join(KEY_SEPARATOR)
+  end
+  alias_method :to_s, :repository_key
 
   def ident
     @ident

@@ -1,6 +1,20 @@
 require_relative '../helper'
 
 class TestSprueEntity < Test::Unit::TestCase
+  def test_entity_key
+    assert_equal 'Sprue::Entity#ident', Sprue::Entity.repository_key('ident')
+
+    entity = Sprue::Entity.new(:ident => 'ident')
+
+    assert_equal 'Sprue::Entity#ident', entity.repository_key
+  end
+
+  def test_entity_key_expand
+    repository = Sprue::Repository.new(Sprue::Context.new.connection)
+
+    assert_equal [ 'test', Sprue::Entity ], Sprue::Entity.repository_key_split('Sprue::Entity#test')
+  end
+
   class SampleEntity < Sprue::Entity
     attribute :string
     attribute :integer,
@@ -64,7 +78,7 @@ class TestSprueEntity < Test::Unit::TestCase
 
     assert_equal false, repository.exist?(entity)
 
-    assert_equal nil, repository.load!(entity.ident, entity.class)
+    assert_equal nil, repository.load!(entity.repository_key)
   end
 
   class WithDefaultsEntity < Sprue::Entity
@@ -124,7 +138,7 @@ class TestSprueEntity < Test::Unit::TestCase
 
     entity.save!(repository)
 
-    loaded_entity = repository.load!(entity, entity.class)
+    loaded_entity = repository.load!(entity.repository_key)
 
     assert_equal attributes, loaded_entity.attributes
   end

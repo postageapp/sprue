@@ -9,27 +9,10 @@ class TestSprueRepository < Test::Unit::TestCase
     assert_equal repository.context, context
   end
 
-  def test_entity_key
-    repository = Sprue::Repository.new(Sprue::Context.new.connection)
-
-    assert_equal 'Test#ident', repository.entity_key('ident', 'Test')
-    assert_equal 'Sprue::Entity#ident', repository.entity_key('ident', Sprue::Entity)
-
-    entity = Sprue::Entity.new(:ident => 'ident')
-
-    assert_equal 'Sprue::Entity#ident', repository.entity_key(entity)    
-  end
-
-  def test_entity_key_expand
-    repository = Sprue::Repository.new(Sprue::Context.new.connection)
-
-    assert_equal [ 'test', Sprue::Entity ], repository.entity_key_expand('Sprue::Entity#test')
-  end
-
   def test_queue_length
     repository = Sprue::Repository.new(Sprue::Context.new.connection)
 
-    assert_equal 0, repository.queue_length
+    assert_equal 0, repository.length('Sprue::Queue#default*')
   end
 
   def test_base_entity_save_and_load
@@ -60,15 +43,15 @@ class TestSprueRepository < Test::Unit::TestCase
 
     assert_equal nil, entity.repository
 
-    assert_equal false, repository.exist?(entity.ident, DataEntity)
+    assert_equal false, repository.exist?(entity)
     assert_equal false, repository.active?(entity)
-    assert_equal nil, repository.load!('test-ident', DataEntity)
+    assert_equal nil, repository.load!(DataEntity.repository_key('test-ident'))
 
     repository.save!(entity)
 
     assert_equal nil, entity.repository
 
-    assert_equal true, repository.exist?(entity.ident, DataEntity)
+    assert_equal true, repository.exist?(entity)
     assert_equal false, repository.active?(entity)
 
     repository.active!(entity)
@@ -83,15 +66,15 @@ class TestSprueRepository < Test::Unit::TestCase
 
     assert_equal true, repository.active?(entity)
 
-    loaded_entity = repository.load!('test-ident', DataEntity)
+    loaded_entity = repository.load!(DataEntity.repository_key('test-ident'))
 
     assert_equal entity.attributes, loaded_entity.attributes
     assert_equal repository, loaded_entity.repository
 
     repository.delete!(entity)
 
-    assert_equal false, repository.exist?(entity.ident, DataEntity)
+    assert_equal false, repository.exist?(entity)
     assert_equal false, repository.active?(entity)
-    assert_equal nil, repository.load!('test-ident', DataEntity)
+    assert_equal nil, repository.load!(DataEntity.repository_key('test-ident'))
   end
 end

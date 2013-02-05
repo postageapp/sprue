@@ -12,16 +12,24 @@ class Sprue::Queue < Sprue::Entity
   def push!(entity, entity_class = nil)
     return false unless (@repository)
     
-    @repository.push!(entity, entity_class, self)
+    @repository.push!(self, entity)
   end
 
-  def pop!(block = false)
+  def pop!(agent = nil, block = false)
     return false unless (@repository)
 
-    @repository.pop!(self, nil, block)
+    @repository.pop!(self, agent, block)
+  end
+
+  def release!(entity, agent = nil)
+    return false unless (@repository)
+
+    @repository.release!(entity, agent)
   end
 
   def length
-    @repository and @repository.queue_length(ident)
+    return false unless (@repository)
+
+    @repository.length(self)
   end
 end

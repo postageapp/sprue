@@ -24,21 +24,4 @@ class Sprue::Job < Sprue::Entity
 
   # == Instance Methods =====================================================
 
-  def claim!(agent)
-    @agent_ident = agent.ident
-
-    self.save!
-    self.active!
-  end
-
-  def release!
-    @agent_ident = nil
-
-    self.save!
-    self.inactive!
-  end
-
-  def queue!(queue_name = nil)
-    @repository.queue!(self, self.class, queue_name)
-  end
 end

@@ -39,16 +39,30 @@ class Sprue::Agent < Sprue::Entity
     @handler.call(job)
   end
 
-  def job_queue!(job, queue = nil)
-    @repository.job_save!(job)
-    @repository.job_queue!(job, queue)
+  def claim!(agent)
+    self.save!
+    self.active!
   end
 
-  def update!
-    @repository.agent_update!(self)
+  def release!
+    @agent_ident = nil
+
+    self.save!
+    self.inactive!
   end
 
-  def remove!
-    @repository.agent_remove!(self)
+  def queue!(job, queue_name = nil)
+    job.agent_ident = @ident
+    @repository.save!(job)
+
+    @repository.queue!(self, self.class, queue_name)
+  end
+
+  def claim!(job)
+    @repository.claim!(self, self.class, job, job.class)
+  end
+
+  def release!(job)
+    @repository.release!(self, self.class, job, job.class)
   end
 end
