@@ -47,5 +47,6 @@ class TestSprueContext < Test::Unit::TestCase
     assert_equal 'default', queue.ident
 
     assert_equal true, context.repository.exist?(queue)
+    assert_equal 0, queue.length
   end
 end

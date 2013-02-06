@@ -35,7 +35,7 @@ class Sprue::Repository
         if (block)
           @connection.brpoplpush(queue_key, agent_key, 0)
         else
-          @connection.rpoplpush(queue_key, agent_key, 0)
+          @connection.rpoplpush(queue_key, agent_key)
         end
       else
         if (block)

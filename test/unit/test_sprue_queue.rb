@@ -54,38 +54,45 @@ class TestSprueQueue < Test::Unit::TestCase
     assert_equal nil, popped
   end
 
-  def test_push_pop_release
+  def test_push_pop_to_queue
     context = Sprue::Context.new
     repository = context.repository
 
-    queue = Sprue::Queue.new(:ident => 'test-queue')
-    queue.save!(repository)
+    inbound_queue = Sprue::Queue.new(:ident => 'inbound-queue')
+    inbound_queue.save!(repository)
 
-    assert_equal 0, queue.length
+    assert_equal 0, inbound_queue.length
 
-    agent = Sprue::Agent.new(context, 'test-agent')
-    agent.save!(repository)
-
-    assert_equal 0, agent.claim_queue.length
+    claim_queue = Sprue::Queue.new(:ident => 'claim-queue')
+    claim_queue.save!(repository)
 
     entity = TestEntity.new
     entity.save!(repository)
 
     assert_equal true, repository.exist?(entity)
 
-    queue.push!(entity)
+    inbound_queue.push!(entity)
 
-    assert_equal 1, queue.length
+    assert_equal 1, inbound_queue.length
 
-    popped = queue.pop!
+    popped = inbound_queue.pop!(claim_queue)
 
     assert popped
     assert_equal entity.attributes, popped.attributes
 
-    assert_equal 0, queue.length
+    assert_equal 0, inbound_queue.length
+    assert_equal 1, claim_queue.length
 
-    popped = queue.pop!
+    popped = inbound_queue.pop!(claim_queue)
 
     assert_equal nil, popped
+
+    assert_equal 0, inbound_queue.length
+    assert_equal 1, claim_queue.length
+
+    claim_queue.delete!(entity)
+
+    assert_equal 0, inbound_queue.length
+    assert_equal 0, claim_queue.length
   end
 end
