@@ -9,7 +9,7 @@ class Sprue::Queue < Sprue::Entity
   
   # == Instance Methods =====================================================
 
-  def push!(entity, entity_class = nil)
+  def push!(entity)
     return false unless (@repository)
     
     @repository.push!(self, entity)
