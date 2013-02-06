@@ -39,10 +39,11 @@ class Sprue::Repository
         end
       else
         if (block)
-          @connection.brpop(key, 0)
+          @connection.brpop(queue_key, 0)
         else
-          @connection.rpop(key)
+          @connection.rpop(queue_key)
         end
+      end
 
     popped_key and self.load!(popped_key)
   end
@@ -55,9 +56,9 @@ class Sprue::Repository
   end
 
   def length(queue)
-    key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
+    queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 
-    @connection.exists(key) and @connection.llen(key) or 0
+    @connection.exists(queue_key) and @connection.llen(queue_key) or 0
   end
 
   def load!(key)
