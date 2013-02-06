@@ -7,17 +7,21 @@ class Sprue::Client
 
   attr_reader :context
   attr_reader :repository
+  
+  attr_accessor :outbound_queue
 
   # == Class Methods ========================================================
 
   # == Instance Methods =====================================================
 
-  def initialize(context, repository = nil)
+  def initialize(context, repository = nil, outbound_queue = nil)
     @context = context
     @repository = repository || @context.repository
+    
+    @outbound_queue = outbound_queue || @context.default_queue
   end
 
-  def submit!(job)
-    @repository.job_submit!(job)
+  def push!(job)
+    @queue and @queue.push!(job) or false
   end
 end

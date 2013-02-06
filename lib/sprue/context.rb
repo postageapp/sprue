@@ -49,4 +49,8 @@ class Sprue::Context
   def generate_ident
     self.class.generate_ident
   end
+
+  def default_queue
+    @default_queue ||= Sprue::Queue.new(:ident => 'default')
+  end
 end

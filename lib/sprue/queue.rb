@@ -32,4 +32,5 @@ class Sprue::Queue < Sprue::Entity
 
     @repository.length(self)
   end
+  alias_method :count, :size, :length
 end

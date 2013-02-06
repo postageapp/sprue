@@ -5,6 +5,10 @@ class Sprue::Agent < Sprue::Entity
 
   # == Properties ===========================================================
 
+  attr_accessor :inbound_queue
+  attr_accessor :outbound_queue
+  attr_accessor :claim_queue
+
   attribute :tags,
     :as => :csv
 
@@ -12,10 +16,14 @@ class Sprue::Agent < Sprue::Entity
 
   # == Instance Methods =====================================================
 
-  def initialize(context, ident = nil)
-    super(ident)
+  def initialize(context, ident = nil, inbound_queue = nil, outbound_queue = nil)
+    @context = context
 
-    @client = Sprue::Client.new(context)
+    super({ :ident => ident }, @context.repository)
+
+    @inbound_queue = inbound_queue || @context.queue("#{@ident}~i")
+    @outbound_queue = outbound_queue || @context.queue
+    @claim_queue = @context.queue("#{@ident}~c")
 
     if (block_given?)
       @handler = Proc.new
@@ -33,6 +41,10 @@ class Sprue::Agent < Sprue::Entity
     @tags.delete(tag)
 
     @repository.client_unsubscribe!(self, tag)
+  end
+
+  def claimed_count
+    @repository.
   end
 
   def receive(job)
