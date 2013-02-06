@@ -55,6 +55,14 @@ class Sprue::Repository
     )
   end
 
+  def pull!(queue, entity)
+    @connection.lrem(
+      subkey(queue, QUEUE_ENTRIES_SUBKEY),
+      0,
+      entity.to_s
+    )
+  end
+
   def length(queue)
     queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 

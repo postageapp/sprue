@@ -39,18 +39,32 @@ class Sprue::Context
   end
 
   def connection
-    Sprue::Connection.new(self)
+    @connection ||= Sprue::Connection.new(self)
   end
 
   def repository
-    Sprue::Repository.new(self.connection)
+    @repository ||= Sprue::Repository.new(self.connection)
+  end
+
+  def queue(name = 'default', save = true, cache = true)
+    if (cached_queue = cache && @queue && @queue[name])
+      return cached_queue
+    end
+
+    new_queue = Sprue::Queue.new({ :ident => name }, self.repository)
+
+    new_queue.save!
+
+    if (cache)
+      @queue ||= { }
+
+      @queue[name.to_s] ||= new_queue
+    end
+
+    new_queue
   end
 
   def generate_ident
     self.class.generate_ident
-  end
-
-  def default_queue
-    @default_queue ||= Sprue::Queue.new(:ident => 'default')
   end
 end

@@ -38,4 +38,14 @@ class TestSprueContext < Test::Unit::TestCase
 
     assert_equal context, repository.context
   end
+
+  def test_queue
+    context = Sprue::Context.new
+
+    queue = context.queue
+
+    assert_equal 'default', queue.ident
+
+    assert_equal true, context.repository.exist?(queue)
+  end
 end

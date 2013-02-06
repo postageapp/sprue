@@ -12,8 +12,6 @@ class TestSprueQueue < Test::Unit::TestCase
     }
 
     assert_equal attributes, queue.attributes
-
-    assert_equal false, queue.push!('test')
   end
 
   def test_with_name
@@ -57,17 +55,18 @@ class TestSprueQueue < Test::Unit::TestCase
   end
 
   def test_push_pop_release
-    repository = Sprue::Repository.new(Sprue::Context.new.connection)
+    context = Sprue::Context.new
+    repository = context.repository
 
     queue = Sprue::Queue.new(:ident => 'test-queue')
     queue.save!(repository)
 
     assert_equal 0, queue.length
 
-    agent = Sprue::Agent.new(:ident => 'test-agent')
+    agent = Sprue::Agent.new(context, 'test-agent')
     agent.save!(repository)
 
-    assert_equal 0, agent.claimed_count
+    assert_equal 0, agent.claim_queue.length
 
     entity = TestEntity.new
     entity.save!(repository)

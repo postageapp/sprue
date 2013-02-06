@@ -43,10 +43,6 @@ class Sprue::Agent < Sprue::Entity
     @repository.client_unsubscribe!(self, tag)
   end
 
-  def claimed_count
-    @repository.
-  end
-
   def receive(job)
     @handler.call(job)
   end
@@ -69,11 +65,11 @@ class Sprue::Agent < Sprue::Entity
     self.inactive!
   end
 
-  def queue!(job, queue_name = nil)
+  def queue!(job, queue = nil)
     job.agent_ident = @ident
     @repository.save!(job)
 
-    @repository.queue!(self, self.class, queue_name)
+    @repository.queue!(job, queue)
   end
 
   def claim!(job)

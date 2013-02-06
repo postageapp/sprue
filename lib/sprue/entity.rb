@@ -167,7 +167,11 @@ class Sprue::Entity
 
     return false unless (repository)
 
+    self.before_save
+
     repository.save!(self)
+
+    self.after_save
   end
 
   def delete!(repository = nil)
@@ -175,6 +179,27 @@ class Sprue::Entity
 
     return false unless (repository)
 
+    self.before_delete
+
     repository.delete!(self)
+
+    self.after_delete
+  end
+
+protected
+  def before_save
+    # Customized in subclasses
+  end
+
+  def after_save
+    # Customized in subclasses
+  end
+
+  def before_delete
+    # Customized in subclasses
+  end
+
+  def after_delete
+    # Customized in subclasses
   end
 end

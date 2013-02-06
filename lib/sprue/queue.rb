@@ -10,27 +10,20 @@ class Sprue::Queue < Sprue::Entity
   # == Instance Methods =====================================================
 
   def push!(entity)
-    return false unless (@repository)
-    
     @repository.push!(self, entity)
   end
 
-  def pop!(agent = nil, block = false)
-    return false unless (@repository)
-
-    @repository.pop!(self, agent, block)
+  def pop!(to_queue = nil, block = false)
+    @repository.pop!(self, to_queue, block)
   end
 
-  def release!(entity, agent = nil)
-    return false unless (@repository)
-
-    @repository.release!(entity, agent)
+  def delete!(entity)
+    @repository.pull!(self, entity)
   end
 
   def length
-    return false unless (@repository)
-
     @repository.length(self)
   end
-  alias_method :count, :size, :length
+  alias_method :size, :length
+  alias_method :count, :length
 end
