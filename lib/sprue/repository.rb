@@ -134,11 +134,11 @@ class Sprue::Repository
     @connection.sadd(tag.to_s, queue.to_s)
   end
 
-  def tag_subscribed?(tag, queue)
+  def tag_subscriber?(tag, queue)
     @connection.sismember(tag.to_s, queue.to_s)
   end
 
-  def tag_subscribers
+  def tag_subscribers(tag)
     @connection.smembers(tag.to_s)
   end
 
@@ -148,5 +148,9 @@ class Sprue::Repository
 
   def tag_unsubscribe!(tag, queue)
     @connection.srem(tag.to_s, queue.to_s)
+  end
+
+  def tag_delete!(tag)
+    @connection.del(tag.to_s)
   end
 end

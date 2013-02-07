@@ -77,4 +77,30 @@ class TestSprueRepository < Test::Unit::TestCase
     assert_equal false, repository.entity_active?(entity)
     assert_equal nil, repository.entity_load!(DataEntity.repository_key('test-ident'))
   end
+
+  def test_subscribe_unsubscribe
+    repository = Sprue::Repository.new(Sprue::Context.new.connection)
+
+    assert_equal %w[ ], repository.tag_subscribers('test-tag')
+
+    repository.tag_subscribe!('test-tag', 'agent1')
+
+    assert_equal %w[ agent1 ], repository.tag_subscribers('test-tag')
+
+    assert_equal true, repository.tag_subscriber?('test-tag', 'agent1')
+
+    repository.tag_subscribe!('test-tag', 'agent2')
+
+    assert_equal %w[ agent1 agent2 ], repository.tag_subscribers('test-tag').sort
+
+    repository.tag_unsubscribe!('test-tag', 'agent1')
+
+    assert_equal %w[ agent2 ], repository.tag_subscribers('test-tag').sort
+
+    assert_equal false, repository.tag_subscriber?('test-tag', 'agent1')
+
+    repository.tag_delete!('test-tag')
+
+    assert_equal %w[ ], repository.tag_subscribers('test-tag')
+  end
 end
