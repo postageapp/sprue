@@ -68,17 +68,17 @@ class TestSprueEntity < Test::Unit::TestCase
 
     repository = Sprue::Context.new.repository
 
-    assert_equal false, repository.exist?(entity)
+    assert_equal false, repository.entity_exist?(entity)
 
     entity.save!(repository)
 
-    assert_equal true, repository.exist?(entity)
+    assert_equal true, repository.entity_exist?(entity)
 
     entity.delete!(repository)
 
-    assert_equal false, repository.exist?(entity)
+    assert_equal false, repository.entity_exist?(entity)
 
-    assert_equal nil, repository.load!(entity.repository_key)
+    assert_equal nil, repository.entity_load!(entity.repository_key)
   end
 
   class WithDefaultsEntity < Sprue::Entity
@@ -134,11 +134,11 @@ class TestSprueEntity < Test::Unit::TestCase
 
     repository = Sprue::Context.new.repository
 
-    assert_equal false, repository.exist?(entity)
+    assert_equal false, repository.entity_exist?(entity)
 
     entity.save!(repository)
 
-    loaded_entity = repository.load!(entity.repository_key)
+    loaded_entity = repository.entity_load!(entity.repository_key)
 
     assert_equal attributes, loaded_entity.attributes
   end

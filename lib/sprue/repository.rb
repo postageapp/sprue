@@ -25,7 +25,7 @@ class Sprue::Repository
     key.to_s + subkey
   end
 
-  def pop!(queue, agent = nil, block = false)
+  def queue_pop!(queue, agent = nil, block = false)
     queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 
     popped_key =
@@ -45,31 +45,34 @@ class Sprue::Repository
         end
       end
 
-    popped_key and self.load!(popped_key)
+    popped_key and self.entity_load!(popped_key)
   end
 
-  def push!(queue, entity)
-    @connection.lpush(
-      subkey(queue, QUEUE_ENTRIES_SUBKEY),
-      entity.to_s
-    )
+  def queue_push!(queue, entity)
+    queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
+
+    @connection.lpush(queue_key, entity.to_s)
   end
 
-  def pull!(queue, entity)
-    @connection.lrem(
-      subkey(queue, QUEUE_ENTRIES_SUBKEY),
-      0,
-      entity.to_s
-    )
+  def queue_pull!(queue, entity)
+    queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
+
+    @connection.lrem(queue_key, 0, entity.to_s)
   end
 
-  def length(queue)
+  def queue_drop!(queue)
+    queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
+    
+    @connection.del(queue_key)
+  end
+
+  def queue_length(queue)
     queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 
     @connection.exists(queue_key) and @connection.llen(queue_key) or 0
   end
 
-  def load!(key)
+  def entity_load!(key)
     values = @connection.hgetall(key.to_s)
 
     if (values.empty?)
@@ -87,7 +90,7 @@ class Sprue::Repository
     entity_class.new(attributes, self)
   end
 
-  def save!(entity)
+  def entity_save!(entity)
     key, values = Sprue::Serializer.serialize(
       entity.to_s,
       entity.attributes,
@@ -97,31 +100,53 @@ class Sprue::Repository
     @connection.hmset(key, values)
   end
 
-  def delete!(entity)
+  def entity_delete!(entity)
     @connection.del(entity.to_s)
     @connection.del(subkey(entity, ACTIVE_SUBKEY))
   end
 
-  def exist?(entity)
+  def entity_exist?(entity)
     @connection.exists(entity.to_s)
   end
 
-  def active!(entity, timeout = nil)
+  def entity_active!(entity, agent = nil, timeout = nil)
     key = subkey(entity, ACTIVE_SUBKEY)
+
+    agent ||= "%s:%d" % [ Socket.gethostname, $$ ]
     
-    @connection.set(key, "%s:%d" % [ Socket.gethostname, $$ ])
+    @connection.set(key, agent.to_s)
     @connection.expire(key, timeout || DEFAULT_TIMEOUT)
   end
 
-  def inactive!(entity)
+  def entity_inactive!(entity)
     key = subkey(entity, ACTIVE_SUBKEY)
     
     @connection.del(key)
   end
 
-  def active?(entity)
+  def entity_active?(entity)
     key = subkey(entity, ACTIVE_SUBKEY)
 
     @connection.exists(key)
+  end
+
+  def tag_subscribe!(tag, queue)
+    @connection.sadd(tag.to_s, queue.to_s)
+  end
+
+  def tag_subscribed?(tag, queue)
+    @connection.sismember(tag.to_s, queue.to_s)
+  end
+
+  def tag_subscribers
+    @connection.smembers(tag.to_s)
+  end
+
+  def tag_subscribers_count
+    @connection.scard(tag.to_s)
+  end
+
+  def tag_unsubscribe!(tag, queue)
+    @connection.srem(tag.to_s, queue.to_s)
   end
 end

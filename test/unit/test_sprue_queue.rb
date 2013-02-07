@@ -24,10 +24,10 @@ class TestSprueQueue < Test::Unit::TestCase
   end
 
   def test_push_pop
-    repository = Sprue::Repository.new(Sprue::Context.new.connection)
+    repository = Sprue::Context.new.repository
 
-    queue = Sprue::Queue.new(:ident => 'test-queue')
-    queue.save!(repository)
+    queue = Sprue::Queue.new({ :ident => 'test-queue' }, repository)
+    queue.save!
 
     assert_equal repository, queue.repository
 
@@ -36,7 +36,7 @@ class TestSprueQueue < Test::Unit::TestCase
     entity = TestEntity.new
     entity.save!(repository)
 
-    assert_equal true, repository.exist?(entity)
+    assert_equal true, repository.entity_exist?(entity)
 
     queue.push!(entity)
 
@@ -58,18 +58,18 @@ class TestSprueQueue < Test::Unit::TestCase
     context = Sprue::Context.new
     repository = context.repository
 
-    inbound_queue = Sprue::Queue.new(:ident => 'inbound-queue')
-    inbound_queue.save!(repository)
+    inbound_queue = Sprue::Queue.new({ :ident => 'inbound-queue' }, repository)
+    inbound_queue.save!
 
     assert_equal 0, inbound_queue.length
 
-    claim_queue = Sprue::Queue.new(:ident => 'claim-queue')
-    claim_queue.save!(repository)
+    claim_queue = Sprue::Queue.new({ :ident => 'claim-queue' }, repository)
+    claim_queue.save!
 
     entity = TestEntity.new
     entity.save!(repository)
 
-    assert_equal true, repository.exist?(entity)
+    assert_equal true, repository.entity_exist?(entity)
 
     inbound_queue.push!(entity)
 
@@ -90,9 +90,56 @@ class TestSprueQueue < Test::Unit::TestCase
     assert_equal 0, inbound_queue.length
     assert_equal 1, claim_queue.length
 
-    claim_queue.delete!(entity)
+    claim_queue.pull!(entity)
 
     assert_equal 0, inbound_queue.length
     assert_equal 0, claim_queue.length
+  end
+
+  def test_push_pull
+    context = Sprue::Context.new
+    repository = context.repository
+
+    queue = Sprue::Queue.new(:ident => 'inbound-queue')
+    queue.save!(repository)
+
+    assert_equal 0, queue.length
+
+    queue.push!("TestEntity:1")
+    queue.push!("TestEntity:1")
+    queue.push!("TestEntity:2")
+    queue.push!("TestEntity:1")
+
+    assert_equal 4, queue.length
+
+    queue.pull!("TestEntity:1")
+
+    assert_equal 1, queue.length
+  end
+
+  def test_push_pull
+    context = Sprue::Context.new
+    repository = context.repository
+
+    queue = Sprue::Queue.new(:ident => 'inbound-queue')
+    queue.save!(repository)
+
+    assert_equal 0, queue.length
+
+    count = 100
+
+    entities = (1..count).to_a.collect { |n| "TestEntity:#{n}" }
+
+    entities.each do |entity|
+      queue.push!(entity)
+    end
+
+    assert_equal count, queue.length
+
+    queue.pull!(entities[1])
+    queue.pull!(entities[3])
+    queue.pull!(entities[5])
+
+    assert_equal count - 3, queue.length
   end
 end

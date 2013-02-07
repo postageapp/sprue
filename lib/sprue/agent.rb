@@ -34,13 +34,13 @@ class Sprue::Agent < Sprue::Entity
     @tags << tag
     @tags.uniq!
 
-    @repository.client_subscribe!(self, tag)
+    @repository.subscribe!(tag, self)
   end
 
   def unsubscribe(tag)
     @tags.delete(tag)
 
-    @repository.client_unsubscribe!(self, tag)
+    @repository.unsubscribe!(tag, self)
   end
 
   def receive(job)

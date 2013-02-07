@@ -165,25 +165,29 @@ class Sprue::Entity
     
     repository ||= @repository
 
-    return false unless (repository)
-
     self.before_save
 
-    repository.save!(self)
+    repository.entity_save!(self)
 
     self.after_save
+  end
+
+  def saved?
+    @repository.exist?(self)
   end
 
   def delete!(repository = nil)
     repository ||= @repository
 
-    return false unless (repository)
-
     self.before_delete
 
-    repository.delete!(self)
+    repository.entity_delete!(self)
 
     self.after_delete
+  end
+
+  def deleted?
+    !@repository.exist?(self)
   end
 
 protected

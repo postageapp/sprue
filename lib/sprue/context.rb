@@ -9,6 +9,7 @@ class Sprue::Context
     :redis_host => 'localhost',
     :redis_port => 6379,
     :redis_database => 0,
+    :default_queue => 'default'
   }
   
   # == Properties ===========================================================
@@ -36,6 +37,8 @@ class Sprue::Context
     @redis_host = config && config[:redis_host] || CONFIG[:redis_host]
     @redis_port = config && config[:redis_port] || CONFIG[:redis_port]
     @redis_database = config && config[:redis_database] || CONFIG[:redis_database]
+
+    @default_queue = config && config[:default_queue] || CONFIG[:default_queue]
   end
 
   def connection
@@ -46,7 +49,9 @@ class Sprue::Context
     @repository ||= Sprue::Repository.new(self.connection)
   end
 
-  def queue(name = 'default', save = true, cache = true)
+  def queue(name = nil, save = true, cache = true)
+    name ||= @default_queue
+
     if (cached_queue = cache && @queue && @queue[name])
       return cached_queue
     end
@@ -62,6 +67,10 @@ class Sprue::Context
     end
 
     new_queue
+  end
+
+  def client
+   Sprue::Client.new(self, self.repository, self.queue)
   end
 
   def generate_ident
