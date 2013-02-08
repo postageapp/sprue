@@ -5,6 +5,8 @@ class Sprue::Agent < Sprue::Entity
 
   # == Properties ===========================================================
 
+  attr_reader :context
+
   attr_accessor :inbound_queue
   attr_accessor :outbound_queue
   attr_accessor :claim_queue
@@ -34,13 +36,13 @@ class Sprue::Agent < Sprue::Entity
     return if (@tags.include?(tag))
     @tags << tag
 
-    @repository.subscribe!(tag, self)
+    self.request!(:subscribe => 'tag')
   end
 
   def unsubscribe(tag)
     @tags.delete(tag)
 
-    @repository.unsubscribe!(tag, self)
+    self.request!(:unsubscribe => 'tag')
   end
 
   def receive(job)
@@ -78,5 +80,11 @@ class Sprue::Agent < Sprue::Entity
 
   def release!(job)
     @repository.release!(self, self.class, job, job.class)
+  end
+
+  def request!(request)
+    @outbound_queue.push!({
+      :agent_ident => @ident
+    }.merge(request))
   end
 end
