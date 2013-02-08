@@ -31,8 +31,8 @@ class Sprue::Agent < Sprue::Entity
   end
 
   def subscribe(tag)
+    return if (@tags.include?(tag))
     @tags << tag
-    @tags.uniq!
 
     @repository.subscribe!(tag, self)
   end

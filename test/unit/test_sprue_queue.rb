@@ -12,6 +12,13 @@ class TestSprueQueue < Test::Unit::TestCase
     }
 
     assert_equal attributes, queue.attributes
+
+    repository = Sprue::Context.new.repository
+    queue.save!(repository)
+
+    assert_equal false, queue.any?
+    assert_equal true, queue.empty?
+    assert_equal 0, queue.length
   end
 
   def test_with_name

@@ -25,6 +25,14 @@ class Sprue::Queue < Sprue::Entity
     @repository.queue_drop!(self)
   end
 
+  def empty?
+    @repository.queue_length(self) == 0
+  end
+
+  def any?
+    @repository.queue_length(self) > 0
+  end
+
   def length
     @repository.queue_length(self)
   end

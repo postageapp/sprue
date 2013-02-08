@@ -28,7 +28,7 @@ class Sprue::Repository
   def queue_pop!(queue, agent = nil, block = false)
     queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 
-    popped_key =
+    popped =
       if (agent)
         agent_key = subkey(agent, QUEUE_ENTRIES_SUBKEY)
 
@@ -45,13 +45,25 @@ class Sprue::Repository
         end
       end
 
-    popped_key and self.entity_load!(popped_key)
+    return unless (popped)
+
+    case (popped[0,1])
+    when '{', '['
+      JSON.load(popped)
+    else
+      self.entity_load!(popped)
+    end
   end
 
   def queue_push!(queue, entity)
     queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 
-    @connection.lpush(queue_key, entity.to_s)
+    case (entity)
+    when Array, Hash
+      @connection.lpush(queue_key, JSON.dump(entity))
+    else
+      @connection.lpush(queue_key, entity.to_s)
+    end
   end
 
   def queue_pull!(queue, entity)
