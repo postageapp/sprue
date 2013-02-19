@@ -85,7 +85,7 @@ class TestSprueRepository < Test::Unit::TestCase
       'test' => 'thing',
       'with' => %w[ array of things ],
       'and' => 1
-    }
+    }.freeze
 
     repository.queue_push!('test-queue', hash)
 
@@ -94,6 +94,48 @@ class TestSprueRepository < Test::Unit::TestCase
     popped = repository.queue_pop!('test-queue')
 
     assert_equal hash, popped
+  end
+
+  def test_push_shift
+    repository = Sprue::Repository.new(Sprue::Context.new.connection)
+
+    items = [
+      { 'test-0' => 'hash' }.freeze,
+      { 'test-1' => 'hash' }.freeze,
+      { 'test-2' => 'hash' }.freeze,
+      { 'test-3' => 'hash' }.freeze,
+      { 'test-4' => 'hash' }.freeze
+    ].freeze
+
+    queue = 'test-queue'
+
+    items.each do |item|
+      repository.queue_push!(queue, item)
+    end
+
+    # PUSH -> POP is FIFO
+    popped = repository.queue_pop!(queue)
+
+    assert_equal items[0], popped
+
+    # PUSH -> SHIFT is LIFO
+    shifted = repository.queue_shift!(queue)
+
+    assert_equal items[4], shifted
+
+    shifted = repository.queue_shift!(queue)
+
+    assert_equal items[3], shifted
+
+    shifted = repository.queue_shift!(queue, true)
+
+    assert_equal nil, shifted
+
+    popped = repository.queue_pop!(queue)
+
+    assert_equal items[1], popped
+
+    assert_equal 0, repository.queue_length(queue)
   end
 
   def test_pop_pull_arbitrary_arrays

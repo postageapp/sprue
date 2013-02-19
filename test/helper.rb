@@ -17,9 +17,30 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'redis'
 require 'sprue'
 
+Sprue::Context.config[:redis_database] = 1
+
 class Test::Unit::TestCase
   def setup
     Sprue::Context.new.connection.flushdb
+  end
+
+  def teardown
+    if (@threads)
+      @threads.each do |thread|
+        thread.kill
+        thread.join
+      end
+    end
+  end
+
+  def background
+    @threads ||= [ ]
+    
+    @threads << Thread.new do
+      Thread.abort_on_exception = true
+      
+      yield
+    end
   end
 
   def assert_mapping(map)
@@ -40,6 +61,16 @@ class Test::Unit::TestCase
     
     assert_equal map, result_map, differences.collect { |s| "Input: #{s.inspect}\n  Expected: #{map[s].inspect}\n  Result:   #{result_map[s].inspect}\n" }.join('')
   end
-end
 
-Sprue::Context.config[:redis_database] = 1
+  def assert_eventually(timeout = 1, message = nil)
+    start = Time.now
+
+    while (!yield)
+      sleep(0.2)
+
+      if (Time.now.to_f - start.to_f > timeout)
+        fail(message || 'Timed out waiting for condition to become true')
+      end
+    end
+  end
+end

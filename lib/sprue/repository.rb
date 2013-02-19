@@ -25,21 +25,21 @@ class Sprue::Repository
     key.to_s + subkey
   end
 
-  def queue_pop!(queue, agent = nil, block = false)
+  def queue_pop!(queue, agent = nil, timeout = nil)
     queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
 
     popped =
       if (agent)
         agent_key = subkey(agent, QUEUE_ENTRIES_SUBKEY)
 
-        if (block)
-          @connection.brpoplpush(queue_key, agent_key, 0)
+        if (timeout)
+          @connection.brpoplpush(queue_key, agent_key, timeout)
         else
           @connection.rpoplpush(queue_key, agent_key)
         end
       else
-        if (block)
-          @connection.brpop(queue_key, 0)
+        if (timeout)
+          @connection.brpop(queue_key, timeout)
         else
           @connection.rpop(queue_key)
         end
@@ -47,12 +47,7 @@ class Sprue::Repository
 
     return unless (popped)
 
-    case (popped[0,1])
-    when '{', '['
-      JSON.load(popped)
-    else
-      self.entity_load!(popped)
-    end
+    materialize(popped)
   end
 
   def queue_push!(queue, entity)
@@ -64,6 +59,22 @@ class Sprue::Repository
     else
       @connection.lpush(queue_key, entity.to_s)
     end
+  end
+
+  def queue_shift!(queue, discard = false)
+    queue_key = subkey(queue, QUEUE_ENTRIES_SUBKEY)
+
+    if (discard)
+      @connection.lpop(queue_key)
+
+      return
+    end
+
+    shifted = @connection.lpop(queue_key)
+
+    return unless (shifted)
+
+    materialize(shifted)
   end
 
   def queue_pull!(queue, entity)
@@ -164,5 +175,15 @@ class Sprue::Repository
 
   def tag_delete!(tag)
     @connection.del(tag.to_s)
+  end
+
+protected
+  def materialize(object)
+    case (object[0,1])
+    when '{', '['
+      JSON.load(object)
+    else
+      self.entity_load!(object)
+    end
   end
 end

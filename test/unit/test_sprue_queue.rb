@@ -103,7 +103,7 @@ class TestSprueQueue < Test::Unit::TestCase
     assert_equal 0, claim_queue.length
   end
 
-  def test_push_pull
+  def test_push_pull_idents
     context = Sprue::Context.new
     repository = context.repository
 
@@ -148,5 +148,49 @@ class TestSprueQueue < Test::Unit::TestCase
     queue.pull!(entities[5])
 
     assert_equal count - 3, queue.length
+  end
+
+  def test_push_shift_hashes
+    context = Sprue::Context.new
+    repository = context.repository
+
+    queue = Sprue::Queue.new(:ident => 'inbound-queue')
+    queue.save!(repository)
+
+    items = [
+      { 'test-0' => 'hash' }.freeze,
+      { 'test-1' => 'hash' }.freeze,
+      { 'test-2' => 'hash' }.freeze,
+      { 'test-3' => 'hash' }.freeze,
+      { 'test-4' => 'hash' }.freeze
+    ].freeze
+
+    items.each do |item|
+      queue.push!(item)
+    end
+
+    # PUSH -> POP is FIFO
+    popped = queue.pop!
+
+    assert_equal items[0], popped
+
+    # PUSH -> SHIFT is LIFO
+    shifted = queue.shift!
+
+    assert_equal items[4], shifted
+
+    shifted = queue.shift!
+
+    assert_equal items[3], shifted
+
+    shifted = queue.shift!(true)
+
+    assert_equal nil, shifted
+
+    popped = queue.pop!
+
+    assert_equal items[1], popped
+
+    assert_equal 0, queue.length
   end
 end
