@@ -12,7 +12,7 @@ class TestSprueEntity < Test::Unit::TestCase
   def test_entity_key_expand
     repository = Sprue::Repository.new(Sprue::Context.new.connection)
 
-    assert_equal [ 'test', Sprue::Entity ], Sprue::Entity.repository_key_split('Sprue::Entity#test')
+    assert_equal [ Sprue::Entity, 'test' ], Sprue::Entity.repository_key_split('Sprue::Entity#test')
   end
 
   class SampleEntity < Sprue::Entity

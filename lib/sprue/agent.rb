@@ -87,4 +87,32 @@ class Sprue::Agent < Sprue::Entity
       :agent_ident => @ident
     }.merge(request))
   end
+  
+  def run!(timeout = nil)
+    loop do
+      while (object = @inbound_queue.pop!(@claimed_queue, timeout))
+        case (object)
+        when Sprue::Entity
+          if (handle_entity(object))
+            @claimed_queue.shift!(true)
+          end
+        else
+          if (handle_command(object))
+            @claimed_queue.shift!(true)
+          end
+        end
+      end
+
+      break unless (timeout)
+    end
+  end
+
+protected
+  def handle_entity(entity)
+    # Behavior defined in user-defined subclass
+  end
+
+  def handle_command(command)
+    true
+  end
 end

@@ -80,7 +80,7 @@ class Sprue::Dispatcher
 
 protected
   def tags_for_entity(entity)
-    [ ]
+    entity.respond_to?(:tags) ? entity.tags : [ ]
   end
 
   def handle_entity(entity)

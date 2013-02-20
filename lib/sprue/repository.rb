@@ -102,7 +102,7 @@ class Sprue::Repository
       return
     end
 
-    ident, entity_class = Sprue::Entity.repository_key_split(key)
+    entity_class, ident = Sprue::Entity.repository_key_split(key)
 
     attributes = Sprue::Serializer.deserialize(
       ident,
