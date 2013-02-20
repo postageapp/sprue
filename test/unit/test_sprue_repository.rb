@@ -78,7 +78,7 @@ class TestSprueRepository < Test::Unit::TestCase
     assert_equal nil, repository.entity_load!(DataEntity.repository_key('test-ident'))
   end
 
-  def test_pop_pull_arbitrary_hashes
+  def test_pop_remove_arbitrary_hashes
     repository = Sprue::Repository.new(Sprue::Context.new.connection)
 
     hash = {
@@ -138,7 +138,7 @@ class TestSprueRepository < Test::Unit::TestCase
     assert_equal 0, repository.queue_length(queue)
   end
 
-  def test_pop_pull_arbitrary_arrays
+  def test_pop_remove_arbitrary_arrays
     repository = Sprue::Repository.new(Sprue::Context.new.connection)
 
     array = [
@@ -150,13 +150,25 @@ class TestSprueRepository < Test::Unit::TestCase
       'number'
     ]
 
-    repository.queue_push!('test-queue', array)
+    queue = 'test-queue'
 
-    assert_equal 1, repository.queue_length('test-queue')
+    repository.queue_push!(queue, array)
 
-    popped = repository.queue_pop!('test-queue')
+    assert_equal 1, repository.queue_length(queue)
+
+    popped = repository.queue_pop!(queue)
 
     assert_equal array, popped
+
+    repository.queue_push!(queue, array)
+    repository.queue_push!(queue, %w[ test ])
+    repository.queue_push!(queue, array)
+
+    assert_equal 3, repository.queue_length(queue)
+
+    repository.queue_remove!(queue, array)
+
+    assert_equal 1, repository.queue_length(queue)
   end
 
   def test_subscribe_unsubscribe

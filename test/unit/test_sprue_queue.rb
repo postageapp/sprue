@@ -97,13 +97,13 @@ class TestSprueQueue < Test::Unit::TestCase
     assert_equal 0, inbound_queue.length
     assert_equal 1, claim_queue.length
 
-    claim_queue.pull!(entity)
+    claim_queue.remove!(entity)
 
     assert_equal 0, inbound_queue.length
     assert_equal 0, claim_queue.length
   end
 
-  def test_push_pull_idents
+  def test_push_remove_idents
     context = Sprue::Context.new
     repository = context.repository
 
@@ -119,12 +119,12 @@ class TestSprueQueue < Test::Unit::TestCase
 
     assert_equal 4, queue.length
 
-    queue.pull!("TestEntity:1")
+    queue.remove!("TestEntity:1")
 
     assert_equal 1, queue.length
   end
 
-  def test_push_pull
+  def test_push_remove
     context = Sprue::Context.new
     repository = context.repository
 
@@ -143,9 +143,9 @@ class TestSprueQueue < Test::Unit::TestCase
 
     assert_equal count, queue.length
 
-    queue.pull!(entities[1])
-    queue.pull!(entities[3])
-    queue.pull!(entities[5])
+    queue.remove!(entities[1])
+    queue.remove!(entities[3])
+    queue.remove!(entities[5])
 
     assert_equal count - 3, queue.length
   end

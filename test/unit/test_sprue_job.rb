@@ -10,6 +10,7 @@ class TestSprueJob < Test::Unit::TestCase
     assert_equal 1, job.priority
     assert_equal nil, job.scheduled_at
     assert_equal [ ], job.tags
+    assert_equal nil, job.type
     assert_equal nil, job.data
   end
 
@@ -33,6 +34,7 @@ class TestSprueJob < Test::Unit::TestCase
       :queue => 'test-queue',
       :priority => 99,
       :tags => %w[ tag-a tag-b ],
+      :type => 'test-type',
       :data => { :test => 'data' },
       :status => 'test-status'
     )
@@ -44,6 +46,7 @@ class TestSprueJob < Test::Unit::TestCase
       :scheduled_at => Time.at(1 << 30).utc,
       :priority => 99,
       :tags => %w[ tag-a tag-b ],
+      :type => 'test-type',
       :data => { :test => 'data' },
       :status => 'test-status'
     }

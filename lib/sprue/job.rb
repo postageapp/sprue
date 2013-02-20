@@ -14,14 +14,22 @@ class Sprue::Job < Sprue::Entity
     :default => 1
   attribute :tags,
     :as => :csv
+  attribute :type,
+    :as => :string
   attribute :data,
     :as => :json
   attribute :status
-
-  attr_reader :repository
 
   # == Class Methods ========================================================
 
   # == Instance Methods =====================================================
 
+  # Defines the action to be performed when this job is to be executed. The
+  # worker executing this job can be passed in as an argument to provide
+  # context.
+  def perform(worker = nil)
+    # Customized in sub-classes
+
+    true
+  end
 end

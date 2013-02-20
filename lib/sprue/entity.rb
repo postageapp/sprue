@@ -47,7 +47,6 @@ class Sprue::Entity
 
   # == Properties ===========================================================
 
-  attr_reader :ident
   attr_reader :repository
 
   # == Class Methods ========================================================
@@ -55,8 +54,8 @@ class Sprue::Entity
   # Returns the attributes defined for this class of Entity as a Hash where
   # the key is the name of the attribute and the value is the configured
   # options for that attribute.
-  def self.attributes
-    @attributes ||= DEFAULT_ATTRIBUTES.dup
+  def self.attribute_options
+    @attribute_options ||= DEFAULT_ATTRIBUTES.dup
   end
 
   # Used to define an attribute for a particular class of Entity with a given
@@ -73,7 +72,7 @@ class Sprue::Entity
 
     instance_variable = :"@#{name}"
 
-    options = self.attributes[name] = defaults.merge(
+    options = self.attribute_options[name] = defaults.merge(
       :instance_variable => instance_variable
     ).merge(options || { })
 
@@ -126,7 +125,7 @@ class Sprue::Entity
   # Creates a new entity with the specified attributes, if any, and an optional
   # repository. The repsository can be assigned later during a call to `save!`
   def initialize(with_attributes = nil, repository = nil)
-    self.class.attributes.each do |name, options|
+    self.class.attribute_options.each do |name, options|
       value = with_attributes && with_attributes[name]
 
       if (value.nil?)
@@ -171,19 +170,19 @@ class Sprue::Entity
 
   # Serializes the Entity into an array.
   def serialize(attributes)
-    Sprue::Serializer.serialize(attributes, self.class.attributes)
+    Sprue::Serializer.serialize(attributes, self.class.attribute_options)
   end
 
   # Deserializes the Entity from the provided ident and values array.
   def deserialize(ident, values)
-    Sprue::Serializer.deserialize(ident, values, self.class.attributes)
+    Sprue::Serializer.deserialize(ident, values, self.class.attribute_options)
   end
 
   # Returns the attributes of this Entity as a Hash where the key is the name
   # and the value is the stored value.
   def attributes
     Hash[
-      self.class.attributes.collect do |name, options|
+      self.class.attribute_options.collect do |name, options|
         [ name, instance_variable_get(options[:instance_variable]) ]
       end
     ]

@@ -17,8 +17,8 @@ class Sprue::Queue < Sprue::Entity
     @repository.queue_push!(self, entity)
   end
 
-  def pull!(entity)
-    @repository.queue_pull!(self, entity)
+  def remove!(entity)
+    @repository.queue_remove!(self, entity)
   end
 
   def shift!(discard = false)

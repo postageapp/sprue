@@ -1,0 +1,62 @@
+#!/usr/bin/env ruby
+
+base_path = File.expand_path(File.join('..'), File.dirname(__FILE__))
+
+$LOAD_PATH << File.expand_path('lib', base_path)
+
+require 'sprue'
+
+require 'optparse'
+
+require 'bundler/setup'
+
+# == Main ===================================================================
+
+options = {
+  :config => 'config/worker.conf',
+  :verbose => false
+}
+
+opts = OptionParser.new do |opts|
+  opts.on('-c', '--config=s', 'Use specific configuration file') do |s|
+    options[:config] = File.expand_path(s, Dir.pwd)
+  end
+
+  opts.on('-q', '--queue=s', 'Process a specific queue') do |s|
+    options[:inbound_queue] = s
+  end
+
+  opts.on('-h', '--help', 'Show help') do
+    puts opts
+    exit(0)
+  end
+
+  opts.on('-v', '--verbose', 'Enable verbose messages') do
+    options[:verbose] = true
+  end
+end
+
+args = opts.parse!(ARGV)
+
+require 'yaml'
+
+config = Hash[
+  YAML.load(File.open(options[:config])).collect do |k, v|
+    [ k.to_sym, v ]
+  end
+]
+
+require 'redis'
+
+context = Sprue::Context.new(config)
+
+worker = Sprue::Worker.new(
+  context,
+  :inbound_queue => context.queue(options[:inbound_queue])
+)
+
+begin
+  worker.run!(1)
+rescue Interrupt
+  exit(0)
+end

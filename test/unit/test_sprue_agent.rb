@@ -12,7 +12,7 @@ class TestSprueAgent < Test::Unit::TestCase
   def test_request
     context = Sprue::Context.new
 
-    agent = Sprue::Agent.new(context, 'test-agent')
+    agent = Sprue::Agent.new(context, :ident => 'test-agent')
 
     agent.request!(:subscribe => 'test-tag')
 

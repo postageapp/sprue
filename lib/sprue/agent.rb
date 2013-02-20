@@ -1,7 +1,9 @@
-class Sprue::Agent < Sprue::Entity
+class Sprue::Agent
   # == Extensions ===========================================================
 
   # == Constants ============================================================
+
+  CLAIMED_POSTFIX = '~c'.freeze
 
   # == Properties ===========================================================
 
@@ -9,64 +11,68 @@ class Sprue::Agent < Sprue::Entity
 
   attr_accessor :inbound_queue
   attr_accessor :outbound_queue
-  attr_accessor :claim_queue
-
-  attribute :tags,
-    :as => :csv
+  attr_accessor :claimed_queue
 
   # == Class Methods ========================================================
 
   # == Instance Methods =====================================================
 
-  def initialize(context, ident = nil, inbound_queue = nil, outbound_queue = nil)
+  # Creates a new Agent in the supplied context. Options can be specified for:
+  #  * :ident - The identifier of this agent, will default if not specified.
+  #  * :inbound_queue - The queue to service from.
+  #  * :outbound_queue - Where jobs will be pushed to.
+  def initialize(context, options = nil)
     @context = context
 
-    super({ :ident => ident }, @context.repository)
+    @ident = options && options[:ident] || @context.generate_ident
+    @repository = @context.repository
 
-    @inbound_queue = inbound_queue || @context.queue("#{@ident}~i")
-    @outbound_queue = outbound_queue || @context.queue
-    @claim_queue = @context.queue("#{@ident}~c")
-
-    if (block_given?)
-      @handler = Proc.new
-    end
+    @inbound_queue = options && options[:inbound_queue] || @context.queue(@ident)
+    @outbound_queue = options && options[:outbound_queue] || @context.queue
+    @claimed_queue = @context.queue("#{@ident}#{CLAIMED_POSTFIX}")
   end
 
-  def subscribe(tag)
-    return if (@tags.include?(tag))
-    @tags << tag
-
-    self.request!(:subscribe => 'tag')
+  # Makes a request to subscribe to queued items with the given tag. If the
+  # repeat option is specified, then this request will persist even when
+  # it has been serviced. This can be called multiple times which has the
+  # effect of increasing the number of subscriptions accordingly.
+  def subscribe(tag, repeat = false)
+    self.request!(
+      'subscribe' => tag.to_s,
+      'repeat' => repeat
+    )
   end
 
+  # Makes a request to no longer receive queued items with the given tag.
   def unsubscribe(tag)
-    @tags.delete(tag)
-
-    self.request!(:unsubscribe => 'tag')
+    self.request!(
+      'unsubscribe' => tag.to_s
+    )
   end
 
-  def receive(job)
-    @handler.call(job)
-  end
-
+  # Pops an item from a given queue and places it in the claimed queue for
+  # this agent.
   def pop!(queue, block = false)
     @repository.pop!(queue, self, block)
   end
 
+  # Registers a claim on a given entity.
   def claim!(entity)
     entity.agent_ident = self.ident
-    entity.save!
 
+    entity.save!
     entity.active!
   end
 
+  # Releases a claim on a given entity.
   def release!(entity)
-    @agent_ident = nil
+    entity.agent_ident = nil
 
-    self.save!
-    self.inactive!
+    entity.save!
+    entity.inactive!
   end
 
+  # Queues a particular entity in 
   def queue!(job, queue = nil)
     job.agent_ident = @ident
     @repository.save!(job)
@@ -74,33 +80,32 @@ class Sprue::Agent < Sprue::Entity
     @repository.queue!(job, queue)
   end
 
-  def claim!(job)
-    @repository.claim!(self, self.class, job, job.class)
-  end
-
-  def release!(job)
-    @repository.release!(self, self.class, job, job.class)
-  end
-
+  # Pushes a request into the outbound queue.
   def request!(request)
     @outbound_queue.push!({
       :agent_ident => @ident
     }.merge(request))
   end
   
+  # This initiates the main run loop of the Agent. If a timeout is passed in,
+  # then a blocking call to fetch new work will be initiated with the specified
+  # timeout.
   def run!(timeout = nil)
     loop do
-      while (object = @inbound_queue.pop!(@claimed_queue, timeout))
+      object = @inbound_queue.pop!(@claimed_queue, timeout)
+
+      was_processed =
         case (object)
+        when Sprue::Job
+          handle_job(object)
         when Sprue::Entity
-          if (handle_entity(object))
-            @claimed_queue.shift!(true)
-          end
+          handle_entity(object)
         else
-          if (handle_command(object))
-            @claimed_queue.shift!(true)
-          end
+          handle_command(object)
         end
+
+      if (was_processed)
+        @claimed_queue.shift!(true)
       end
 
       break unless (timeout)
@@ -108,11 +113,24 @@ class Sprue::Agent < Sprue::Entity
   end
 
 protected
+  # Defines how a job is handled. If the method returns true then the job is
+  # considered to have been processed and will be removed from the claimed
+  # queue.
+  def handle_job(job)
+    # Behavior defined in user-defined subclass
+  end
+
+  # Defines how an entity is handled. If the method returns true then the
+  # entity is considered to have been processed and will be removed from the
+  # claimed queue.
   def handle_entity(entity)
     # Behavior defined in user-defined subclass
   end
 
+  # Defines how a command is handled. If the method returns true then the
+  # command is considered to have been processed and will be removed from the
+  # claimed queue.
   def handle_command(command)
-    true
+    # Behavior defined in user-defined subclass
   end
 end

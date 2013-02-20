@@ -28,7 +28,7 @@ class TestSprueEntity < Test::Unit::TestCase
   def test_sample_entity_attributes
     entity = SampleEntity.new(:ident => 'test-ident')
 
-    assert entity.class.attributes
+    assert entity.class.attribute_options
 
     assert_equal nil, entity.repository
 

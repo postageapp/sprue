@@ -9,4 +9,5 @@ module Sprue
   autoload(:Queue, 'sprue/queue')
   autoload(:Repository, 'sprue/repository')
   autoload(:Serializer, 'sprue/serializer')
+  autoload(:Worker, 'sprue/worker')
 end

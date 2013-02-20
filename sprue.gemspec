@@ -5,13 +5,14 @@
 
 Gem::Specification.new do |s|
   s.name = "sprue"
-  s.version = "0.1.0"
+  s.version = "0.1.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Scott Tadman"]
-  s.date = "2013-02-01"
+  s.date = "2013-02-20"
   s.description = "A simple job queueing system for people who might need to queue a lot of jobs."
   s.email = "scott@twg.ca"
+  s.executables = ["sprue"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -22,25 +23,39 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "Rakefile",
     "VERSION",
+    "bin/sprue",
+    "config/.gitignore",
+    "config/worker.conf.example",
     "lib/sprue.rb",
     "lib/sprue/agent.rb",
     "lib/sprue/client.rb",
     "lib/sprue/connection.rb",
     "lib/sprue/context.rb",
     "lib/sprue/dispatcher.rb",
+    "lib/sprue/entity.rb",
     "lib/sprue/job.rb",
+    "lib/sprue/queue.rb",
     "lib/sprue/repository.rb",
+    "lib/sprue/serializer.rb",
+    "lib/sprue/worker.rb",
+    "sample/worker",
     "sprue.gemspec",
     "test/helper.rb",
     "test/unit/test_sprue.rb",
+    "test/unit/test_sprue_agent.rb",
+    "test/unit/test_sprue_connection.rb",
     "test/unit/test_sprue_context.rb",
+    "test/unit/test_sprue_dispatcher.rb",
+    "test/unit/test_sprue_entity.rb",
     "test/unit/test_sprue_job.rb",
-    "test/unit/test_sprue_repository.rb"
+    "test/unit/test_sprue_queue.rb",
+    "test/unit/test_sprue_repository.rb",
+    "test/unit/test_sprue_serializer.rb"
   ]
   s.homepage = "http://github.com/tadman/sprue"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.23"
+  s.rubygems_version = "1.8.24"
   s.summary = "Simple Job Queue"
 
   if s.respond_to? :specification_version then
@@ -51,6 +66,7 @@ Gem::Specification.new do |s|
       s.add_runtime_dependency(%q<json>, [">= 0"])
       s.add_development_dependency(%q<bundler>, [">= 0"])
       s.add_development_dependency(%q<jeweler>, [">= 1.8.4"])
+      s.add_development_dependency(%q<mocha>, [">= 0"])
       s.add_development_dependency(%q<eventmachine>, [">= 0"])
       s.add_development_dependency(%q<em-synchrony>, [">= 0"])
     else
@@ -58,6 +74,7 @@ Gem::Specification.new do |s|
       s.add_dependency(%q<json>, [">= 0"])
       s.add_dependency(%q<bundler>, [">= 0"])
       s.add_dependency(%q<jeweler>, [">= 1.8.4"])
+      s.add_dependency(%q<mocha>, [">= 0"])
       s.add_dependency(%q<eventmachine>, [">= 0"])
       s.add_dependency(%q<em-synchrony>, [">= 0"])
     end
@@ -66,6 +83,7 @@ Gem::Specification.new do |s|
     s.add_dependency(%q<json>, [">= 0"])
     s.add_dependency(%q<bundler>, [">= 0"])
     s.add_dependency(%q<jeweler>, [">= 1.8.4"])
+    s.add_dependency(%q<mocha>, [">= 0"])
     s.add_dependency(%q<eventmachine>, [">= 0"])
     s.add_dependency(%q<em-synchrony>, [">= 0"])
   end

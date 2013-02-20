@@ -16,28 +16,22 @@ class TestSprueDispatcher < Test::Unit::TestCase
   end
 
   def test_run_cycle
-    context = Sprue::Context.new
-    dispatcher = Sprue::Dispatcher.new(context)
-
-    assert_equal 0, dispatcher.inbound_queue.length
-
-    dispatcher.inbound_queue.push!(
-      'subscribe' => 'tag1',
-      'agent_ident' => 'agent1'
-    )
-
-    assert_equal 1, dispatcher.inbound_queue.length
+    dispatcher = Sprue::Dispatcher.new(Sprue::Context.new)
 
     background do
       dispatcher.run!(1)
     end
 
-    assert_eventually do
-      dispatcher.inbound_queue.empty?
-    end
+    context = Sprue::Context.new
+    queue = context.queue
+
+    queue.push!(
+      'subscribe' => 'tag1',
+      'agent_ident' => 'agent1'
+    )
 
     assert_eventually do
-      dispatcher.claimed_queue.empty?
+      queue.empty?
     end
 
     assert_equal %w[ agent1 ], dispatcher.tag_subscribers('tag1')
@@ -52,5 +46,7 @@ class TestSprueDispatcher < Test::Unit::TestCase
     end
 
     assert_equal %w[ agent1 agent2 ], dispatcher.tag_subscribers('tag1')    
+
+    puts 'OK'
   end
 end

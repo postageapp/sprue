@@ -17,6 +17,7 @@ class Sprue::Context
   attr_reader :redis_host
   attr_reader :redis_port
   attr_reader :redis_database
+  attr_reader :default_queue
   
   # == Class Methods ========================================================
 

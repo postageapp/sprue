@@ -1,4 +1,4 @@
-class Sprue::Dispatcher
+class Sprue::Dispatcher < Sprue::Agent
   # == Extensions ===========================================================
   
   # == Constants ============================================================
@@ -16,6 +16,7 @@ class Sprue::Dispatcher
   # == Properties ===========================================================
 
   attr_reader :context
+  attr_reader :ident
   attr_reader :inbound_queue
   attr_reader :claimed_queue
   attr_reader :rejected_queue
@@ -120,7 +121,7 @@ protected
         @tag_subscribers.delete(tag)
       end
     elsif (tag = command[ECHO_COMMAND])
-      @repository.queue_push!()
+      @repository.queue_push!(agent_ident, command)
     else
       # NOTE: Sending a response to the client might help.
       @rejected_queue.push!(command)
