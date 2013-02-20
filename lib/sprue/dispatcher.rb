@@ -26,13 +26,8 @@ class Sprue::Dispatcher < Sprue::Agent
   # == Instance Methods =====================================================
 
   def initialize(context, options = nil)
-    @context = context
-    @repository = @context.repository
+    super(context, options)
 
-    @ident = options && options[:ident] || @context.generate_ident
-
-    @inbound_queue = @context.queue
-    @claimed_queue = @context.queue(@ident)
     @rejected_queue = @context.queue(@ident + REJECT_POSTFIX)
 
     @tag_subscribers = Hash.new { |h,k| h[k] = [ ] }
@@ -60,28 +55,13 @@ class Sprue::Dispatcher < Sprue::Agent
     @claimed_queue.length
   end
 
-  def run!(timeout = nil)
-    loop do
-      while (object = @inbound_queue.pop!(@claimed_queue, timeout))
-        case (object)
-        when Sprue::Entity
-          if (handle_entity(object))
-            @claimed_queue.shift!(true)
-          end
-        else
-          if (handle_command(object))
-            @claimed_queue.shift!(true)
-          end
-        end
-      end
-
-      break unless (timeout)
-    end
-  end
-
 protected
   def tags_for_entity(entity)
     entity.respond_to?(:tags) ? entity.tags : [ ]
+  end
+
+  def handle_job(job)
+    true
   end
 
   def handle_entity(entity)

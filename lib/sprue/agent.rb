@@ -3,7 +3,7 @@ class Sprue::Agent
 
   # == Constants ============================================================
 
-  CLAIMED_POSTFIX = '~c'.freeze
+  CLAIMED_POSTFIX = '/c'.freeze
 
   # == Properties ===========================================================
 
