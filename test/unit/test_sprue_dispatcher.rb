@@ -18,9 +18,7 @@ class TestSprueDispatcher < Test::Unit::TestCase
   def test_run_cycle
     dispatcher = Sprue::Dispatcher.new(Sprue::Context.new)
 
-    background do
-      dispatcher.run!(1)
-    end
+    dispatcher.start!
 
     context = Sprue::Context.new
     queue = context.queue
@@ -47,6 +45,6 @@ class TestSprueDispatcher < Test::Unit::TestCase
 
     assert_equal %w[ agent1 agent2 ], dispatcher.tag_subscribers('tag1')    
 
-    puts 'OK'
+    dispatcher.stop!
   end
 end

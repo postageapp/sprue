@@ -59,8 +59,6 @@ class Sprue::Context
 
     new_queue = Sprue::Queue.new({ :ident => name }, self.repository)
 
-    new_queue.save!
-
     if (cache)
       @queue ||= { }
 

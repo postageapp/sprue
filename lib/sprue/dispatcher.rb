@@ -26,6 +26,10 @@ class Sprue::Dispatcher < Sprue::Agent
   # == Instance Methods =====================================================
 
   def initialize(context, options = nil)
+    options = options ? options.dup : { } 
+
+    options[:inbound_queue] ||= context.queue
+
     super(context, options)
 
     @rejected_queue = @context.queue(@ident + REJECT_POSTFIX)

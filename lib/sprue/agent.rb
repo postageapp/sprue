@@ -8,6 +8,7 @@ class Sprue::Agent
   # == Properties ===========================================================
 
   attr_reader :context
+  attr_reader :ident
 
   attr_accessor :inbound_queue
   attr_accessor :outbound_queue
@@ -30,6 +31,31 @@ class Sprue::Agent
     @inbound_queue = options && options[:inbound_queue] || @context.queue(@ident)
     @outbound_queue = options && options[:outbound_queue] || @context.queue
     @claimed_queue = @context.queue("#{@ident}#{CLAIMED_POSTFIX}")
+  end
+
+  def running?
+    !!@running
+  end
+
+  def start!
+    @thread ||= Thread.new do
+      Thread.abort_on_exception = true
+
+      @running = true
+
+      self.run!(1)
+    end
+  end
+
+  def stop!
+    return unless (@thread)
+
+    @running = false
+
+    @thread.kill
+    @thread.join
+
+    @thread = nil
   end
 
   # Makes a request to subscribe to queued items with the given tag. If the
@@ -96,6 +122,9 @@ class Sprue::Agent
 
       was_processed =
         case (object)
+        when nil
+          # Timed out during blocking pop call, so ignore
+          false
         when Sprue::Job
           handle_job(object)
         when Sprue::Entity
@@ -108,7 +137,7 @@ class Sprue::Agent
         @claimed_queue.shift!(true)
       end
 
-      break unless (timeout)
+      break unless (@running)
     end
   end
 
