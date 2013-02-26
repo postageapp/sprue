@@ -32,6 +32,10 @@ class TestSprueDispatcher < Test::Unit::TestCase
       queue.empty?
     end
 
+    assert_eventually do
+      dispatcher.tag_subscribers('tag1').length > 0
+    end
+
     assert_equal %w[ agent1 ], dispatcher.tag_subscribers('tag1')
 
     dispatcher.inbound_queue.push!(
@@ -43,7 +47,11 @@ class TestSprueDispatcher < Test::Unit::TestCase
       dispatcher.inbound_queue.empty?
     end
 
-    assert_equal %w[ agent1 agent2 ], dispatcher.tag_subscribers('tag1')    
+    assert_eventually do
+      dispatcher.tag_subscribers('tag1').length > 1
+    end
+
+    assert_equal %w[ agent1 agent2 ], dispatcher.tag_subscribers('tag1')
 
     dispatcher.stop!
   end
