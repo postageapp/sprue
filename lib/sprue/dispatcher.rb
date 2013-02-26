@@ -5,7 +5,8 @@ class Sprue::Dispatcher < Sprue::Agent
 
   COMMANDS = [
     SUBSCRIBE_COMMAND = 'subscribe'.freeze,
-    UNSUBSCRIBE_COMMAND = 'unsubscribe'.freeze
+    UNSUBSCRIBE_COMMAND = 'unsubscribe'.freeze,
+    ECHO_COMMAND = 'echo'.freeze
   ].freeze
 
   AGENT_IDENT = 'agent_ident'.freeze

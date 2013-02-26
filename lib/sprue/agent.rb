@@ -43,7 +43,7 @@ class Sprue::Agent
 
       @running = true
 
-      self.run!(1)
+      self.run!(5)
     end
   end
 

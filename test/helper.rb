@@ -66,7 +66,7 @@ class Test::Unit::TestCase
     start = Time.now
 
     while (!yield)
-      sleep(0.2)
+      select(nil, nil, nil, 0.2)
 
       if (Time.now.to_f - start.to_f > timeout)
         fail(message || 'Timed out waiting for condition to become true')
