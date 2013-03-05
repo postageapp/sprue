@@ -7,7 +7,7 @@ class Sprue::Dispatcher < Sprue::Agent
     SUBSCRIBE_COMMAND = 'subscribe'.freeze,
     UNSUBSCRIBE_COMMAND = 'unsubscribe'.freeze,
     COMPLETE_COMMAND = 'complete'.freeze,
-    REJECT_COMMNAD = 'reject'.freeze,
+    REJECT_COMMAND = 'reject'.freeze,
     FAIL_COMMAND = 'fail'.freeze,
     ECHO_COMMAND = 'echo'.freeze
   ].freeze
@@ -40,7 +40,7 @@ class Sprue::Dispatcher < Sprue::Agent
 
     @tag_subscribers = Hash.new { |h,k| h[k] = [ ] }
 
-    @backlog = [ ]
+    @backlog = Sprue::Backlog.new
   end
 
   def tag_subscribers(tag)
@@ -78,8 +78,12 @@ protected
     job.tags.each do |tag|
       next unless (@tag_subscribers.key?(tag))
 
-      if (agent_ident = @tag_subscribers[tag].pop)
-        @repository.queue_push!(agent_ident, job)
+      if (agent_entry = @tag_subscribers[tag].pop)
+        @repository.queue_push!(agent_entry[0], job)
+
+        if (agent_entry[1])
+          @tag_subscribers[tag] << agent_entry
+        end
 
         return true
       end
