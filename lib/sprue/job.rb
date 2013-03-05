@@ -32,4 +32,16 @@ class Sprue::Job < Sprue::Entity
 
     true
   end
+
+  def ==(job)
+    self.priority == job.priority
+  end
+
+  def <=>(job)
+    self.priority <=> job.priority
+  end
+
+  def >(job)
+    self.priority > job.priority
+  end
 end

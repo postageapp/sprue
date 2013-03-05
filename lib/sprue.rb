@@ -1,5 +1,6 @@
 module Sprue
   autoload(:Agent, 'sprue/agent')
+  autoload(:Backlog, 'sprue/backlog')
   autoload(:Client, 'sprue/client')
   autoload(:Connection, 'sprue/connection')
   autoload(:Context, 'sprue/context')
@@ -9,5 +10,6 @@ module Sprue
   autoload(:Queue, 'sprue/queue')
   autoload(:Repository, 'sprue/repository')
   autoload(:Serializer, 'sprue/serializer')
+  autoload(:SortedArray, 'sprue/sorted_array')
   autoload(:Worker, 'sprue/worker')
 end

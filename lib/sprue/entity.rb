@@ -188,6 +188,11 @@ class Sprue::Entity
     ]
   end
 
+  def ===(entity)
+    self.object_id == entity.object_id or
+      self.attributes == entity.attributes
+  end
+
   # Saves an entity to the specified repository, or if no repository is
   # specified, from the repository previously used to load or save the Entity.
   # Triggers before_save and after_save methods.

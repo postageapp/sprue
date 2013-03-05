@@ -6,6 +6,9 @@ class Sprue::Dispatcher < Sprue::Agent
   COMMANDS = [
     SUBSCRIBE_COMMAND = 'subscribe'.freeze,
     UNSUBSCRIBE_COMMAND = 'unsubscribe'.freeze,
+    COMPLETE_COMMAND = 'complete'.freeze,
+    REJECT_COMMNAD = 'reject'.freeze,
+    FAIL_COMMAND = 'fail'.freeze,
     ECHO_COMMAND = 'echo'.freeze
   ].freeze
 
@@ -36,6 +39,8 @@ class Sprue::Dispatcher < Sprue::Agent
     @rejected_queue = @context.queue(@ident + REJECT_POSTFIX)
 
     @tag_subscribers = Hash.new { |h,k| h[k] = [ ] }
+
+    @backlog = [ ]
   end
 
   def tag_subscribers(tag)
@@ -65,8 +70,24 @@ protected
     entity.respond_to?(:tags) ? entity.tags : [ ]
   end
 
+  def backlog_job!(job)
+    @backlog << job
+  end
+
   def handle_job(job)
-    true
+    job.tags.each do |tag|
+      next unless (@tag_subscribers.key?(tag))
+
+      if (agent_ident = @tag_subscribers[tag].pop)
+        @repository.queue_push!(agent_ident, job)
+
+        return true
+      end
+    end
+
+    backlog_job!(job)
+
+    false
   end
 
   def handle_entity(entity)
@@ -96,8 +117,20 @@ protected
     agent_ident = command[AGENT_IDENT]
 
     if (tag = command[SUBSCRIBE_COMMAND])
-      @tag_subscribers[tag] << [ agent_ident, !!command[REINJECT] ]
+      reinject = !!command[REINJECT]
 
+      job = @backlog.job_pop!(tag)
+
+      if (job)
+        job.agent_ident = agent_ident
+        job.save!
+        
+        @repository.queue_push!(agent_ident, job)
+      end
+
+      if (reinject or !job)
+        @tag_subscribers[tag] << [ agent_ident, reinject ]
+      end
     elsif (tag = command[UNSUBSCRIBE_COMMAND])
       set = @tag_subscribers[tag]
 
@@ -106,6 +139,18 @@ protected
       if (set.empty?)
         @tag_subscribers.delete(tag)
       end
+    elsif (job_ident = command[COMPLETE_COMMAND])
+      job = @repository.load(job_ident)
+
+      @backlog.job_delete!(job)
+    elsif (job_ident = command[REJECT_COMMAND])
+      job = @repository.load(job_ident)
+
+      @backlog.job_push!(job)
+    elsif (job_ident = command[FAIL_COMMAND])
+      job = @repository.load(job_ident)
+
+      @backlog.job_delete!(job)
     elsif (tag = command[ECHO_COMMAND])
       @repository.queue_push!(agent_ident, command)
     else
