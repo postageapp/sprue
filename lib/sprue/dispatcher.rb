@@ -97,6 +97,7 @@ protected
 
     if (tag = command[SUBSCRIBE_COMMAND])
       @tag_subscribers[tag] << [ agent_ident, !!command[REINJECT] ]
+
     elsif (tag = command[UNSUBSCRIBE_COMMAND])
       set = @tag_subscribers[tag]
 

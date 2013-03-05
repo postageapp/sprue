@@ -53,6 +53,7 @@ class TestSprueDispatcher < Test::Unit::TestCase
 
     assert_equal %w[ agent1 agent2 ], dispatcher.tag_subscribers('tag1')
 
+  ensure
     dispatcher.stop!
   end
 
@@ -83,5 +84,8 @@ class TestSprueDispatcher < Test::Unit::TestCase
 
       assert_equal echo, response
     end
+
+  ensure
+    dispatcher.stop!
   end
 end
