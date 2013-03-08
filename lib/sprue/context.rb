@@ -68,8 +68,24 @@ class Sprue::Context
     new_queue
   end
 
-  def client
-   Sprue::Client.new(self, self.repository, self.queue)
+  def dispatcher(options = nil)
+    dispatcher_class = Sprue::Dispatcher
+
+    if (options and options[:dispatcher_class])
+      dispatcher_class = options[:dispatcher_class].split('::').reduce(Module, :const_get)
+    end
+    
+    dispatcher_class.new(self, options)
+  end
+
+  def client(options = nil)
+    client_class = Sprue::Client
+
+    if (options and options[:client_class])
+      client_class = options[:client_class].split('::').reduce(Module, :const_get)
+    end
+
+    client_class.new(self, self.repository, self.queue)
   end
 
   def generate_ident
