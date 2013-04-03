@@ -9,10 +9,10 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Scott Tadman"]
-  s.date = "2013-02-20"
+  s.date = "2013-04-03"
   s.description = "A simple job queueing system for people who might need to queue a lot of jobs."
   s.email = "scott@twg.ca"
-  s.executables = ["sprue"]
+  s.executables = ["sprue", "sprued"]
   s.extra_rdoc_files = [
     "LICENSE.txt",
     "README.rdoc"
@@ -21,13 +21,17 @@ Gem::Specification.new do |s|
     "Gemfile",
     "LICENSE.txt",
     "README.rdoc",
+    "RELASES.txt",
     "Rakefile",
     "VERSION",
     "bin/sprue",
+    "bin/sprued",
     "config/.gitignore",
-    "config/worker.conf.example",
+    "config/dispatcher.yml.example",
+    "config/worker.yml.example",
     "lib/sprue.rb",
     "lib/sprue/agent.rb",
+    "lib/sprue/backlog.rb",
     "lib/sprue/client.rb",
     "lib/sprue/connection.rb",
     "lib/sprue/context.rb",
@@ -37,12 +41,14 @@ Gem::Specification.new do |s|
     "lib/sprue/queue.rb",
     "lib/sprue/repository.rb",
     "lib/sprue/serializer.rb",
+    "lib/sprue/sorted_array.rb",
     "lib/sprue/worker.rb",
     "sample/worker",
     "sprue.gemspec",
     "test/helper.rb",
     "test/unit/test_sprue.rb",
     "test/unit/test_sprue_agent.rb",
+    "test/unit/test_sprue_backlog.rb",
     "test/unit/test_sprue_connection.rb",
     "test/unit/test_sprue_context.rb",
     "test/unit/test_sprue_dispatcher.rb",
@@ -50,12 +56,13 @@ Gem::Specification.new do |s|
     "test/unit/test_sprue_job.rb",
     "test/unit/test_sprue_queue.rb",
     "test/unit/test_sprue_repository.rb",
-    "test/unit/test_sprue_serializer.rb"
+    "test/unit/test_sprue_serializer.rb",
+    "test/unit/test_sprue_sorted_array.rb"
   ]
   s.homepage = "http://github.com/tadman/sprue"
   s.licenses = ["MIT"]
   s.require_paths = ["lib"]
-  s.rubygems_version = "1.8.24"
+  s.rubygems_version = "1.8.23"
   s.summary = "Simple Job Queue"
 
   if s.respond_to? :specification_version then
