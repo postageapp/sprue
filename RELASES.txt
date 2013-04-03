@@ -1,0 +1,4 @@
+0.1.1
+ - Functional structure, Sprue::Queue and Sprue::Dispatcher working.
+0.1.0
+ - Initial prototype, rough structures and basic concepts.
