@@ -1,3 +1,5 @@
+0.1.2
+ - Changed naming structure of active keys.
 0.1.1
  - Functional structure, Sprue::Queue and Sprue::Dispatcher working.
 0.1.0

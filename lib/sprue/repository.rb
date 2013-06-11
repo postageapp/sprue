@@ -5,7 +5,7 @@ class Sprue::Repository
   
   # == Constants ============================================================
 
-  ACTIVE_SUBKEY = '!'.freeze
+  ACTIVE_SUBKEY = '&'.freeze
   QUEUE_ENTRIES_SUBKEY = '*'.freeze
   DEFAULT_TIMEOUT = 30
   
@@ -24,7 +24,9 @@ class Sprue::Repository
   end
 
   def subkey(key, subkey)
-    key.to_s + subkey
+    parts = key.to_s.split(':')
+    parts[0] << ACTIVE_SUBKEY
+    parts.join(':')
   end
 
   def encoded_object(object)
